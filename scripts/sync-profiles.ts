@@ -386,15 +386,18 @@ async function exportProfiles(): Promise<void> {
 			touchTreeDeterministic(stageDir);
 
 			const filename = `${archiveBasename}${ARCHIVE_EXT}`;
-			// Drop any stale copy anywhere in the tree (legacy flat layout or a
-			// different model folder) so the export never leaves duplicates behind.
-			for (const stale of findArchivesRecursive(REPO_PROFILES_DIR)) {
-				if (basename(stale) === filename) {
+			const outDir = modelProfileDir(profile.manifest.Device.Model);
+			const outArchive = join(outDir, filename);
+			// Overwrite the target, and clean up a legacy flat copy at the repo root
+			// from before the per-model layout. Do NOT sweep other model folders by
+			// basename: the same profile name can legitimately exist for a different
+			// device (e.g. xp_stream_c172sp under both StreamDeck XL and Streamdeck 3).
+			const legacyFlat = join(REPO_PROFILES_DIR, filename);
+			for (const stale of [outArchive, legacyFlat]) {
+				if (existsSync(stale)) {
 					rmSync(stale);
 				}
 			}
-			const outDir = modelProfileDir(profile.manifest.Device.Model);
-			const outArchive = join(outDir, filename);
 			run("zip", ["-X", "-r", "-q", outArchive, "package.json", "Profiles"], stageDir);
 			console.log(
 				`  ✓ ${join(MODEL_PROFILE_DIRS[profile.manifest.Device.Model] ?? "", filename)}  (UUID ${profile.folderName.replace(".sdProfile", "")})`,
