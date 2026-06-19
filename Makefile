@@ -52,11 +52,11 @@ smoke: ## Run the X-Plane client smoke script (X-Plane must be running)
 icons: ## Generate Stream Deck button icons from scripts/icons/catalog.ts into out/icons/
 	npm run --silent icons
 
-import: ## Restore Stream Deck profiles from streamdeck-profiles/ into the app
-	npx tsx scripts/sync-profiles.ts import
+import: ## Restore profiles from streamdeck-profiles/<DIR> (default: StreamDeck XL). Override: make import DIR="Streamdeck 3"
+	npx tsx scripts/sync-profiles.ts import $(if $(DIR),"$(DIR)",)
 
-export: ## Snapshot live Stream Deck profiles into streamdeck-profiles/
-	npx tsx scripts/sync-profiles.ts export
+export: ## Snapshot live profiles into streamdeck-profiles/<DIR> (default: StreamDeck XL). Override: make export DIR="Streamdeck 3"
+	npx tsx scripts/sync-profiles.ts export $(if $(DIR),"$(DIR)",)
 
 convert: ## Convert a PilotsDeck profile to this plugin. Usage: make convert IN=in.streamDeckProfile [OUT=out.streamDeckProfile]
 	@if [ -z "$(IN)" ]; then echo "IN is required, e.g. make convert IN='SR2x.streamDeckProfile'"; exit 1; fi
