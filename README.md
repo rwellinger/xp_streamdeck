@@ -51,7 +51,10 @@ Native Stream Deck plugin for X-Plane 12 — runs on macOS and Windows, talking 
 
 ## Included aircraft & helicopter profiles
 
-Ready-made Stream Deck XL profiles ship under [`streamdeck-profiles/`](streamdeck-profiles/README.md). Each profile expects this plugin installed and the matching aircraft loaded in X-Plane. See the [sync section](#aircrafthelicopter-profiles) below for `make export` / `make import` usage.
+Ready-made Stream Deck XL, Stream Deck MK2 and Stream Deck 3 profiles ship under [`streamdeck-profiles/`](streamdeck-profiles/README.md). Each profile expects this plugin installed and the matching aircraft loaded in X-Plane. See the [sync section](#aircrafthelicopter-profiles) below for `make export` / `make import` usage.
+
+> [!NOTE]  
+> Stream Deck MK2 and Stream Deck 3 profiles are still under development, you can [check profiles compatibility here](streamdeck-profiles/README.md).
 
 | Profile | File | Min. plugin version |
 | --- | --- | --- |
@@ -875,7 +878,7 @@ Change once → re-run `make icons` → every icon updates with identical propor
 
 ## Aircraft/Helicopter profiles
 
-Ready-made Stream Deck XL profiles for several aircraft live in [`streamdeck-profiles/`](streamdeck-profiles/README.md). The bundled set covers the X-Plane default Cessna 172 SP and G1000, Aerobask Diamond DA42 / DA62 / DV20, UL Shark, Aerobask Phenom 300, Pilatus PC12 by Thranda (G1000 version), and the **Piper PA-46 M500 by [X-Aerodynamics](https://www.x-aerodynamics.com/copy-of-about-x-aero)**. Also new supported are Helicopters. Special the EC130 and high detailed AW-109 V2.
+Ready-made Stream Deck XL, Stream Deck MK2 and Stream Deck 3 profiles for several aircraft live in [`streamdeck-profiles/`](streamdeck-profiles/README.md). The bundled set covers the X-Plane default Cessna 172 SP and G1000, Aerobask Diamond DA42 / DA62 / DV20, UL Shark, Aerobask Phenom 300, Pilatus PC12 by Thranda (G1000 version), Toliss Airbus family, X-Plane default A330 & Aerogenesis A330 and the **Piper PA-46 M500 by [X-Aerodynamics](https://www.x-aerodynamics.com/copy-of-about-x-aero)**. Also new supported are Helicopters. Special the EC130 and high detailed AW-109 V2.
 
 Each profile expects this plugin installed and the matching aircraft loaded in X-Plane.
 

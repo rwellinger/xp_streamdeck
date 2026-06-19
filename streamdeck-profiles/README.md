@@ -1,6 +1,7 @@
 # Stream Deck Profiles #
 
-Stream Desk XL Profiles only function together with the xp_streamdesk Plugin.
+> [!IMPORTANT]  
+> The Streamdeck profiles in the following library only work together with the [xp_streamdesk Plugin](../README.md).
 
 ## Sync via `make` ##
 
@@ -55,6 +56,35 @@ Adding a new aircraft profile (e.g. B738):
 On the sim Mac: `git pull && make import` picks up the new profile and the
 updated parent automatically — the new tile works on first launch because
 folder UUIDs are preserved across machines.
+
+## Streamdeck Models Support ##
+
+Streamdeck models currently supported by the profiles:
+
+> [!NOTE]  
+> Stream Deck MK2 and Stream Deck 3 profiles are still under development, you can check profiles compatibility here.
+
+| **Profile** | Streamdeck XL (4x8) | Streamdeck MK2 & Streamdeck 3 (3x15) |
+| --- | --- | --- |
+| **G1000 - X-Plane Default X1000 (G1000)** | ✅ | ❌ |
+| **Cessna 172 SP by X-Plane** | ✅ | ✅ |
+| **Cirrus SR22** | ✅ | ❌ |
+| **Lancair Evolution** | ✅ | ❌ |
+| **VAN's VR10** | ✅ | ❌ |
+| **Piper PA-46 M500 by X-Aerodynamics** | ✅ | ❌ |
+| **Diamond DA42 and DA62 by Aerobask** | ✅ | ❌ |
+| **Diamond DA20 / DV20 by Aerobask** | ✅ | ❌ |
+| **UL Shark by Aerobask** | ✅ | ❌ |
+| **Phenom 300 by Aerobask** | ✅ | ❌ |
+| **Pilatus PC12 by Thranda (G1000 Version)** | ✅ | ❌ |
+| **EuroCopter EC130 (Garmin 430 Edition)** | ✅ | ❌ |
+| **AW-109 SP 2.0** | ✅ | ❌ |
+| **Guimbal Cabri G2** | ✅ | ❌ |
+| **T-6A Texan II by AOA** | ✅ | ❌ |
+| **Toliss Airbus Family** | ❌ | ✅ |
+
+> [!TIP]  
+> You can open Streamdeck 3 or Streamdeck MK2 profiles on Streamdeck XL without problems, but if you open Streamdeck XL profiles on Streamdeck 3 or Streamdeck MK2 the profiles would appear cropped.
 
 ## X-Plane Menu Profile
 
@@ -288,3 +318,51 @@ Plugin Version Required: 1.4.4.0 or newer (Uses the new Display Selector)
 * G1000 MFD integrated
 * Ground Procedures (Cold&Dark)
 * Cockpit Views
+
+## Toliss Airbus Family ##
+
+Streamdeck profile for all twinjet Toliss Airbus aircrafts.
+
+> [!NOTE]  
+> The Toliss A340 is not currently fully supported since it was created for twinjet Airbus aircrafts (Two fire handles, fuel systems...).
+
+> [!NOTE]  
+> This profile was created and tested with the A320 Neo, some systems may not match aircrafts that are not from A320 family like the A330, for example, the Hydraulics.
+
+Filename: xp_stream_airbus_toliss.streamDeckProfile
+
+Plugin Version Required: 1.4.3.0 or newer (Uses the new Multi-Action / Macro to hold agents buttons)
+
+### Features: ###
+
+* Animated Gear
+* CPLDC
+* ECAM
+* XPDR equipment
+* Ground handling
+* Fire panel
+
+Full list of integrated panels:
+
+* MASTER WARNING
+* MASTER CAUTION
+* ECAM
+* GEAR
+* LIGHTS
+* ELEC
+* CPDLC
+* ADIRS
+* FCU & EFIS
+* FUEL & FIRE
+* TCAS & XPDR
+* HYD
+* GROUND
+* RADIO
+
+> [!IMPORTANT]  
+> Engine Fire annunciators: light only when fire is detected, remain on after
+  extinguishing (dataref limitation).
+> APU Fire annunciators function correctly.
+> Agent discharge status unavailable.
+> The Fire annunciators don't illuminate during testing.
+> **Toliss uses some kind of internal logic and lacks of datarefs, this makes the above features not available**
