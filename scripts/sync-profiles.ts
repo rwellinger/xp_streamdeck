@@ -20,7 +20,7 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 
 if (process.platform !== "darwin") {
@@ -40,6 +40,15 @@ const PROFILE_NAME_PREFIX = "xp_stream_";
 const PARENT_PROFILE_NAME = "X-Plane";
 const PARENT_FILE_BASENAME = "xp_stream_parent";
 const ARCHIVE_EXT = ".streamDeckProfile";
+
+// Profiles live in per-model subfolders of streamdeck-profiles/ so that one repo
+// can ship layouts for several Stream Deck sizes. The key is the Device.Model
+// string stored in each profile's manifest; the value is the subfolder name.
+// Unknown models fall back to the repo root (with a warning on export).
+const MODEL_PROFILE_DIRS: Record<string, string> = {
+	"20GAT9902": "StreamDeck XL",
+	"20GBA9901": "Streamdeck 3",
+};
 
 // Normalization targets for exported archives. Keeps git diffs noise-free:
 // the live Device.UUID is hardware-bound (different per Mac) and Pages.Current
@@ -243,6 +252,42 @@ function ensureRepoProfilesDir(): void {
 	}
 }
 
+// Profiles can sit at the repo root or in any subfolder (per-model dirs,
+// PilotsDeck-Converted/, …), so scan the whole tree rather than a flat readdir.
+function findArchivesRecursive(dir: string): string[] {
+	const out: string[] = [];
+	const stack = [dir];
+	while (stack.length > 0) {
+		const current = stack.pop();
+		if (!current) {
+			continue;
+		}
+		for (const entry of readdirSync(current, { withFileTypes: true })) {
+			const full = join(current, entry.name);
+			if (entry.isDirectory()) {
+				stack.push(full);
+			} else if (entry.isFile() && entry.name.endsWith(ARCHIVE_EXT)) {
+				out.push(full);
+			}
+		}
+	}
+	return out.sort((a, b) => a.localeCompare(b));
+}
+
+// Resolve (and create) the subfolder an exported archive belongs in, based on the
+// Stream Deck model it was built for.
+function modelProfileDir(model: string): string {
+	const sub = MODEL_PROFILE_DIRS[model];
+	if (!sub) {
+		console.warn(`  ! unknown device model ${model} — writing to repo root`);
+	}
+	const dir = sub ? join(REPO_PROFILES_DIR, sub) : REPO_PROFILES_DIR;
+	if (!existsSync(dir)) {
+		mkdirSync(dir, { recursive: true });
+	}
+	return dir;
+}
+
 type ExportTarget = { profile: LiveProfile; archiveBasename: string };
 
 function parseSelection(input: string, max: number): number[] | string {
@@ -340,13 +385,19 @@ async function exportProfiles(): Promise<void> {
 			);
 			touchTreeDeterministic(stageDir);
 
-			const outArchive = join(REPO_PROFILES_DIR, `${archiveBasename}${ARCHIVE_EXT}`);
-			if (existsSync(outArchive)) {
-				rmSync(outArchive);
+			const filename = `${archiveBasename}${ARCHIVE_EXT}`;
+			// Drop any stale copy anywhere in the tree (legacy flat layout or a
+			// different model folder) so the export never leaves duplicates behind.
+			for (const stale of findArchivesRecursive(REPO_PROFILES_DIR)) {
+				if (basename(stale) === filename) {
+					rmSync(stale);
+				}
 			}
+			const outDir = modelProfileDir(profile.manifest.Device.Model);
+			const outArchive = join(outDir, filename);
 			run("zip", ["-X", "-r", "-q", outArchive, "package.json", "Profiles"], stageDir);
 			console.log(
-				`  ✓ ${archiveBasename}${ARCHIVE_EXT}  (UUID ${profile.folderName.replace(".sdProfile", "")})`,
+				`  ✓ ${join(MODEL_PROFILE_DIRS[profile.manifest.Device.Model] ?? "", filename)}  (UUID ${profile.folderName.replace(".sdProfile", "")})`,
 			);
 		} finally {
 			rmSync(stageDir, { recursive: true, force: true });
@@ -372,9 +423,9 @@ function findInnerSdProfile(extractedDir: string): { name: string; path: string 
 
 function importProfiles(): void {
 	ensureRepoProfilesDir();
-	const archives = readdirSync(REPO_PROFILES_DIR).filter((f) => f.endsWith(ARCHIVE_EXT));
+	const archives = findArchivesRecursive(REPO_PROFILES_DIR);
 	if (archives.length === 0) {
-		console.log(`No ${ARCHIVE_EXT} archives in ${REPO_PROFILES_DIR} — nothing to import.`);
+		console.log(`No ${ARCHIVE_EXT} archives under ${REPO_PROFILES_DIR} — nothing to import.`);
 		return;
 	}
 
@@ -385,14 +436,27 @@ function importProfiles(): void {
 	quitStreamDeck();
 
 	let imported = 0;
-	for (const archive of archives) {
-		const archivePath = join(REPO_PROFILES_DIR, archive);
+	let skipped = 0;
+	for (const archivePath of archives) {
+		const archive = basename(archivePath);
 		const stageDir = makeTempDir("xp-sd-import-");
 		try {
 			run("unzip", ["-q", "-o", archivePath, "-d", stageDir]);
 			const inner = findInnerSdProfile(stageDir);
 			const manifestPath = join(inner.path, "manifest.json");
 			const manifest = readManifest(manifestPath);
+
+			// Each archive carries the Stream Deck model it was built for. Importing a
+			// profile sized for another device (e.g. a Streamdeck 3 layout onto an XL)
+			// yields a broken profile, so skip anything that doesn't match.
+			if (manifest.Device.Model !== deviceModel) {
+				console.log(
+					`  – skipping ${archive}  (built for model ${manifest.Device.Model}, local device is ${deviceModel})`,
+				);
+				skipped += 1;
+				continue;
+			}
+
 			manifest.Device.UUID = deviceUuid;
 			manifest.Device.Model = deviceModel;
 			writeFileSync(manifestPath, JSON.stringify(manifest));
@@ -409,7 +473,11 @@ function importProfiles(): void {
 		}
 	}
 
-	console.log(`\nImported ${imported} profile(s) → ${PROFILES_DIR}`);
+	console.log(
+		`\nImported ${imported} profile(s)${
+			skipped > 0 ? `, skipped ${skipped} built for other models` : ""
+		} → ${PROFILES_DIR}`,
+	);
 	launchStreamDeck();
 }
 
