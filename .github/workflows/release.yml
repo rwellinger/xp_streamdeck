@@ -53,9 +53,18 @@ jobs:
           mkdir -p "$STAGE"
           cp com.robertw.xplane.streamDeckPlugin "$STAGE/"
           cp -R out/icons              "$STAGE/icons"
-          cp -R streamdeck-profiles    "$STAGE/profiles"
+          # Bundle every .streamDeckProfile, preserving the per-model subfolder
+          # layout (StreamDeck XL/, Streamdeck 3/, PilotsDeck-Converted/). The
+          # streamdeck-profiles/icons/ source library and stray READMEs are
+          # dev-only — the archives embed their own images, so keep them out of
+          # the release. -m prunes the now-empty icons/ dirs.
+          mkdir -p "$STAGE/profiles"
+          rsync -am --include='*/' --include='*.streamDeckProfile' --exclude='*' \
+            streamdeck-profiles/ "$STAGE/profiles/"
           cp README.md INSTALL.md      "$STAGE/"
           ls -la "$STAGE"
+          echo "Bundled profiles:"
+          find "$STAGE/profiles" -name '*.streamDeckProfile' | sort
 
       - name: Create ZIP
         run: |
