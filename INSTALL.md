@@ -8,7 +8,8 @@ This package contains everything needed to use the X-Plane Stream Deck plugin on
 | --- | --- |
 | `com.robertw.xplane.streamDeckPlugin` | The Stream Deck plugin bundle. |
 | `profiles/` | Pre-built Stream Deck profiles (one `.streamDeckProfile` per aircraft). |
-| `icons/` | Button icon library, grouped by function (`autopilot`, `cockpit`, `lights`, `readouts`, `g1000`, `backgrounds`). |
+| `icons/generated/` | Script-generated button icon library, grouped by function (`autopilot`, `cockpit`, `lights`, `readouts`, `g1000`, `backgrounds`). |
+| `icons/external/` | Community-contributed icon packs (e.g. `airbus/` for ToLiss aircraft), each with its own license. |
 | `README.md` | Full developer / reference documentation (action types, DataRef formatting, icon pipeline, …). |
 | `INSTALL.md` | This file. |
 
@@ -78,21 +79,23 @@ Get-Content "$env:APPDATA\Elgato\StreamDeck\logs\Plugins\com.robertw.xplane*.log
 
 ## Customizing Buttons
 
-The `icons/` directory contains the same icons used by the bundled profiles, organized by function. Use them when building your own profile or extending an imported one.
+The `icons/generated/` directory contains the same script-generated icons used by the bundled profiles, organized by function. Use them when building your own profile or extending an imported one.
 
 | Folder | Contents |
 | --- | --- |
-| `icons/autopilot/` | AP / FD / YD toggles, AP setpoint readouts, HDG / ALT / V/S / SRC nudges |
-| `icons/cockpit/` | Parking brake, fuel pump, master battery, avionics, pitot heat |
-| `icons/lights/` | Beacon, landing, taxi, NAV, strobe |
-| `icons/readouts/` | Live values (HDG, ALT, IAS, V/S, BARO, WIND, W SPD) |
-| `icons/g1000/` | G1000 GCU keys |
-| `icons/backgrounds/` | Solid-color filler tiles for visual separation |
+| `icons/generated/autopilot/` | AP / FD / YD toggles, AP setpoint readouts, HDG / ALT / V/S / SRC nudges |
+| `icons/generated/cockpit/` | Parking brake, fuel pump, master battery, avionics, pitot heat |
+| `icons/generated/lights/` | Beacon, landing, taxi, NAV, strobe |
+| `icons/generated/readouts/` | Live values (HDG, ALT, IAS, V/S, BARO, WIND, W SPD) |
+| `icons/generated/g1000/` | G1000 GCU keys |
+| `icons/generated/backgrounds/` | Solid-color filler tiles for visual separation |
+
+The `icons/external/` directory holds community-contributed icon packs (e.g. `icons/external/airbus/` for ToLiss aircraft). Each pack ships with its own license — see the `LICENSE` file inside the pack folder before redistributing.
 
 To assign an icon and action to a key in the Stream Deck app:
 
 1. Select the key in the layout.
-2. Drag any PNG from `icons/<group>/` onto the key's image slot.
+2. Drag any PNG from `icons/generated/<group>/` (or an `icons/external/<pack>/` folder) onto the key's image slot.
 3. From the **X-Plane** category, drop the matching action onto the key:
    - **Command** — fire any X-Plane CommandRef on press (e.g. `sim/operation/pause_toggle`).
    - **Command + Display** — fire a CommandRef and show a live DataRef as the title.

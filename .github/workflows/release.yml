@@ -52,12 +52,18 @@ jobs:
           STAGE="release-stage/xp_streamdeck-${{ steps.ver.outputs.tag }}"
           mkdir -p "$STAGE"
           cp com.robertw.xplane.streamDeckPlugin "$STAGE/"
-          cp -R out/icons              "$STAGE/icons"
+          # Icons split by origin: generated (fresh from `make icons`) vs external
+          # (community-contributed packs under streamdeck-profiles/icons/, e.g. airbus).
+          # The committed streamdeck-profiles/icons/generic/ snapshot is a redundant
+          # subset of the generated set and is intentionally excluded.
+          mkdir -p "$STAGE/icons/external"
+          cp -R out/icons "$STAGE/icons/generated"
+          rsync -a --exclude='generic' streamdeck-profiles/icons/ "$STAGE/icons/external/"
           # Bundle every .streamDeckProfile, preserving the per-model subfolder
           # layout (StreamDeck XL/, Streamdeck 3/, PilotsDeck-Converted/). The
-          # streamdeck-profiles/icons/ source library and stray READMEs are
-          # dev-only — the archives embed their own images, so keep them out of
-          # the release. -m prunes the now-empty icons/ dirs.
+          # .streamDeckProfile archives embed their own images, so only the
+          # profile bundles are copied here (the icon library is staged above);
+          # stray dev-only READMEs are skipped. -m prunes the now-empty icons/ dirs.
           mkdir -p "$STAGE/profiles"
           rsync -am --include='*/' --include='*.streamDeckProfile' --exclude='*' \
             streamdeck-profiles/ "$STAGE/profiles/"
@@ -65,6 +71,8 @@ jobs:
           ls -la "$STAGE"
           echo "Bundled profiles:"
           find "$STAGE/profiles" -name '*.streamDeckProfile' | sort
+          echo "Bundled external icons:"
+          find "$STAGE/icons/external" -type d | sort
 
       - name: Create ZIP
         run: |
