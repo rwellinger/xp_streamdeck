@@ -15,11 +15,12 @@ Native Stream Deck plugin for X-Plane 12 — runs on macOS and Windows, talking 
 - [Button icons](#button-icons)
 - [Included aircraft & helicopter profiles](#included-aircraft--helicopter-profiles)
 - [Aircraft/Helicopter profiles (sync)](#aircrafthelicopter-profiles)
+- [Converting a PilotsDeck profile](#converting-a-pilotsdeck-profile)
 - [Common Make targets](#common-make-targets)
 
 ## Features
 
-- Native Stream Deck XL plugin for X-Plane 12 — no XPLM C++ side required.
+- Native Stream Deck plugin for X-Plane 12 (Stream Deck XL, MK2 and Stream Deck 3) — no XPLM C++ side required.
 - Cross-platform: macOS 12+ and Windows 10+ (build & runtime).
 - Talks to the X-Plane Web API on `localhost:8086` — REST + WebSocket, ~10 Hz live DataRef updates.
 - Drives any DataRef or CommandRef from a button, including array-indexed DataRefs via `name[N]` (see [Array DataRefs](#array-datarefs)).
@@ -27,6 +28,7 @@ Native Stream Deck plugin for X-Plane 12 — runs on macOS and Windows, talking 
 - 16 button action types — fire commands, write DataRefs, render live values, two-stage guarded covers, multi-position switches, scripted multi-action macros, wind arrow, …
 - Locally generated, visually consistent button icons (5 kinds, color-coded by group) — see [Button icons](#button-icons).
 - macOS profile sync via `make export` / `make import` — preserves folder UUIDs so parent-profile cross-links survive across machines.
+- Cross-platform PilotsDeck profile converter (`make convert`) — adapt an existing PilotsDeck `.streamDeckProfile` to this plugin (see [Converting a PilotsDeck profile](#converting-a-pilotsdeck-profile)).
 
 ### Action types
 
@@ -56,28 +58,32 @@ Ready-made Stream Deck XL, Stream Deck MK2 and Stream Deck 3 profiles ship under
 > [!NOTE]  
 > Stream Deck MK2 and Stream Deck 3 profiles are still under development, you can [check profiles compatibility here](streamdeck-profiles/README.md).
 
-| Profile | File | Min. plugin version |
-| --- | --- | --- |
-| X-Plane parent menu (links all profiles together) | `xp_stream_parent.streamDeckProfile` | — |
-| Default X1000 (G1000) | `xp_stream_g1000.streamDeckProfile` | 1.3.0.0 |
-| Cessna 172 SP | `xp_stream_c172sp.streamDeckProfile` | 1.3.0.0 |
-| Cirrus SR22 | `xp_stream_sr22.streamDeckProfile` | 1.4.3.0 |
-| Lancair Evolution (Austin Meyer) | `xp_stream_lancair.streamDeckProfile` | 1.3.0.0 |
-| Piper PA-46 M500 | `xp_stream_pa46.streamDeckProfile` | 1.3.0.0 |
-| Diamond DA42 / DA62 | `xp_stream_da42.streamDeckProfile` | 1.3.0.0 |
-| Diamond DA20 / DV20 by Aerobask | `xp_stream_dv20.streamDeckProfile` | 1.4.1.0 |
-| UL Shark | `xp_stream_shark.streamDeckProfile` | 1.3.1.0 |
-| Phenom 300 | `xp_stream_ph300.streamDeckProfile` | 1.3.0.0 |
-| Pilatus PC12 by Thranda (G1000) | `xp_stream_pc12.streamDeckProfile` | 1.3.0.0 |
-| EuroCopter EC130 (Garmin 430) | `xp_stream_ec130.streamDeckProfile` | 1.3.0.0 |
-| AW-109 SP 2.0 | `xp_stream_aw109.streamDeckProfile` | 1.4.3.0 |
-| Guimbal Cabri G2 | `xp_stream_gabri_g2.streamDeckProfile` | 1.4.3.0 |
+| Profile | File | Min. plugin version | Models |
+| --- | --- | --- | --- |
+| X-Plane parent menu (links all profiles together) | `xp_stream_parent.streamDeckProfile` | — | XL, MK2, SD3 |
+| Default X1000 (G1000) | `xp_stream_g1000.streamDeckProfile` | 1.3.0.0 | XL |
+| Cessna 172 SP | `xp_stream_c172sp.streamDeckProfile` | 1.3.0.0 | XL, MK2, SD3 |
+| Cirrus SR22 | `xp_stream_sr22.streamDeckProfile` | 1.4.3.0 | XL |
+| Lancair Evolution (Austin Meyer) | `xp_stream_lancair.streamDeckProfile` | 1.3.0.0 | XL |
+| VAN's VR10 | `xp_stream_rv10.streamDeckProfile` | 1.4.0.0 | XL |
+| Piper PA-46 M500 | `xp_stream_pa46.streamDeckProfile` | 1.3.0.0 | XL |
+| Diamond DA42 / DA62 | `xp_stream_da42.streamDeckProfile` | 1.3.0.0 | XL |
+| Diamond DA20 / DV20 by Aerobask | `xp_stream_dv20.streamDeckProfile` | 1.4.1.0 | XL |
+| UL Shark | `xp_stream_shark.streamDeckProfile` | 1.3.1.0 | XL |
+| Phenom 300 | `xp_stream_ph300.streamDeckProfile` | 1.3.0.0 | XL |
+| Pilatus PC12 by Thranda (G1000) | `xp_stream_pc12.streamDeckProfile` | 1.3.0.0 | XL |
+| EuroCopter EC130 (Garmin 430) | `xp_stream_ec130.streamDeckProfile` | 1.3.0.0 | XL |
+| AW-109 SP 2.0 | `xp_stream_aw109.streamDeckProfile` | 1.4.3.0 | XL |
+| Guimbal Cabri G2 | `xp_stream_gabri_g2.streamDeckProfile` | 1.4.3.0 | XL |
+| T-6A Texan II by AOA | `xp_stream_t6a.streamDeckProfile` | 1.4.4.0 | XL |
+| Toliss Airbus Family | `xp_stream_airbus_toliss.streamDeckProfile` | 1.4.3.0 | MK2, SD3 |
 
-Per-aircraft feature notes and first-time setup live in [`streamdeck-profiles/README.md`](streamdeck-profiles/README.md).
+Per-aircraft feature notes, the full Stream Deck **model compatibility matrix** (XL 4×8 vs. MK2 / Stream Deck 3 3×15), and first-time setup live in [`streamdeck-profiles/README.md`](streamdeck-profiles/README.md).
 
 ## Platform support
 
 - **Plugin runtime:** macOS 12+ and Windows 10+. Sideload from a Release tarball or build from this repo.
+- **Stream Deck hardware:** the plugin runs on any Stream Deck. Bundled profiles target the Stream Deck XL (4×8); Stream Deck MK2 and Stream Deck 3 (3×15) layouts are being added — see the [model compatibility matrix](streamdeck-profiles/README.md#streamdeck-models-support). XL can open MK2 / SD3 profiles fine; the reverse appears cropped.
 - **Build & dev tooling:** `npm install`, `npm run build`, and `npm run icons` work on both OS. The `make` targets are convenience wrappers for macOS/Linux shells — Windows users should call the underlying `npm` scripts directly.
 - **`make export` / `make import`** (Stream Deck profile sync) is **macOS-only** because it drives the Stream Deck app via AppleScript and reads `~/Library/...`. Windows users manage profiles via the Stream Deck app's built-in import/export UI.
 - Initial Windows port and AW109-profile validation were contributed by a community user.
