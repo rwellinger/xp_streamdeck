@@ -339,6 +339,7 @@ export const catalog: IconDef[] = [
 	{ kind: "display", name: "bat", label: "BAT", group: "readouts" },
 	{ kind: "display", name: "rpm", label: "RPM", group: "readouts" },
 	{ kind: "display", name: "tr_min", label: "TR/MIN", group: "readouts" },
+	{ kind: "display", name: "flaps", label: "FLAPS", group: "readouts" },
 	// Label-less display: just the accent line; setTitle() drops the live value below.
 	{ kind: "display", name: "eng_blank", label: "", group: "readouts" },
 
