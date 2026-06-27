@@ -426,6 +426,8 @@ export class XPlaneGuardedDataRef extends SingletonAction<GuardedDataRefSettings
 			if (state.guardPath) {
 				this.dropSubscription(state);
 				this.dropLongSubscription(state);
+				state.lastValue = undefined;
+				state.lastLongValue = undefined;
 				state.currentState = STATE_DIRTY;
 			}
 			setOffline(state.action).catch((err) =>
