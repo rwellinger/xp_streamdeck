@@ -319,6 +319,22 @@ Plugin Version Required: 1.4.4.0 or newer (Uses the new Display Selector)
 * Ground Procedures (Cold&Dark)
 * Cockpit Views
 
+## BN-2A Islander by Thranda
+
+Filename: xp_stream_bn2a_th.streamDeckProfile
+
+Plugin Version Required: 1.6.2.0 or newer
+
+### Features: ###
+
+* Overhead
+* All Buttons for BN2
+* Garmin 430 Support (on GARMIN only)
+* Ground Procedures (Cold&Dark)
+* Transponder
+* Cockpit Views
+
+
 ## Toliss Airbus Family ##
 
 Streamdeck profile for all twinjet Toliss Airbus aircrafts.
