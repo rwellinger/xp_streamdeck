@@ -22,7 +22,7 @@ import { TIMINGS, TOLERANCE_FLOAT } from "../const";
 import { selectors } from "../selectors/registry";
 import { coerceNumber, toFiniteNumber } from "../util/coerce";
 import { applyIndex, parseDataRefPath } from "../util/dataref-path";
-import { clearTile, setNotFound, setOffline } from "../util/error-tile";
+import { clearOffline, clearTile, setNotFound, setOffline } from "../util/error-tile";
 import { extractPlaceholderKeys, substitutePlaceholders } from "../util/placeholders";
 import { trimString } from "../util/settings";
 import type { DataRefValue, SubscriptionHandle, XPlaneClient } from "../xplane";
@@ -139,6 +139,7 @@ export class XPlaneGuardedCommand extends SingletonAction<GuardedCommandSettings
 			if (state.guardPath) {
 				await this.applySubscription(state);
 			} else {
+				await clearOffline(state.action);
 				await clearTile(state.action);
 				await state.action.setState(STATE_LOCKED);
 				state.currentState = STATE_LOCKED;
@@ -398,12 +399,18 @@ export class XPlaneGuardedCommand extends SingletonAction<GuardedCommandSettings
 
 	private onXPlaneOnline(): void {
 		for (const state of this.states.values()) {
-			if (state.guardPath && !state.handle) {
-				this.applySubscription(state).catch((err) =>
-					streamDeck.logger.warn(
-						`guarded-command: re-subscribe failed for ${state.guardPath}`,
-						err,
-					),
+			if (state.guardPath) {
+				if (!state.handle) {
+					this.applySubscription(state).catch((err) =>
+						streamDeck.logger.warn(
+							`guarded-command: re-subscribe failed for ${state.guardPath}`,
+							err,
+						),
+					);
+				}
+			} else {
+				clearOffline(state.action).catch((err) =>
+					streamDeck.logger.warn("guarded-command: clearOffline failed", err),
 				);
 			}
 		}
