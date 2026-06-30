@@ -16,7 +16,7 @@ import type { JsonObject } from "@elgato/utils";
 import { toFiniteNumber } from "../util/coerce";
 import { combineTitle } from "../util/error-tile";
 import { formatDataRefValue, type ValueMode } from "../util/format";
-import { normalizeFormat, trimString } from "../util/settings";
+import { normalizeFormat, resolveZeroSnap, trimString } from "../util/settings";
 import type { XPlaneClient } from "../xplane";
 import { SubscribableAction, type SubscribableState } from "./base/subscribable-action";
 
@@ -27,6 +27,8 @@ type DataRefDisplaySettings = JsonObject & {
 	unitScale?: string | number;
 	precision?: string | number;
 	valueMode?: ValueMode;
+	snapZero?: boolean;
+	zeroThreshold?: string | number;
 };
 
 interface ActionState extends SubscribableState<DataRefDisplaySettings> {
@@ -34,6 +36,7 @@ interface ActionState extends SubscribableState<DataRefDisplaySettings> {
 	unitScale?: number;
 	precision?: number;
 	valueMode: ValueMode;
+	zeroSnap?: number;
 }
 
 @action({ UUID: "com.robertw.xplane.dataref-display" })
@@ -52,6 +55,7 @@ export class XPlaneDataRefDisplay extends SubscribableAction<DataRefDisplaySetti
 			unitScale: parsed.unitScale,
 			precision: parsed.precision,
 			valueMode: parsed.valueMode,
+			zeroSnap: parsed.zeroSnap,
 		};
 	}
 
@@ -67,6 +71,7 @@ export class XPlaneDataRefDisplay extends SubscribableAction<DataRefDisplaySetti
 		state.unitScale = parsed.unitScale;
 		state.precision = parsed.precision;
 		state.valueMode = parsed.valueMode;
+		state.zeroSnap = parsed.zeroSnap;
 		return { pathChanged };
 	}
 
@@ -77,6 +82,7 @@ export class XPlaneDataRefDisplay extends SubscribableAction<DataRefDisplaySetti
 			unitScale: state.unitScale,
 			precision: state.precision,
 			valueMode: state.valueMode,
+			zeroSnap: state.zeroSnap,
 		});
 		state.action
 			.setTitle(combineTitle(state.label, valueText))
@@ -91,6 +97,7 @@ function parseSettings(s: DataRefDisplaySettings): {
 	unitScale?: number;
 	precision?: number;
 	valueMode: ValueMode;
+	zeroSnap?: number;
 } {
 	return {
 		path: trimString(s.datarefPath),
@@ -99,5 +106,6 @@ function parseSettings(s: DataRefDisplaySettings): {
 		unitScale: toFiniteNumber(s.unitScale),
 		precision: toFiniteNumber(s.precision),
 		valueMode: s.valueMode === "string" ? "string" : "numeric",
+		zeroSnap: resolveZeroSnap(s.snapZero, s.zeroThreshold),
 	};
 }

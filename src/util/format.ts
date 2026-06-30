@@ -15,6 +15,7 @@ export interface FormatOptions {
 	unitScale?: number;
 	precision?: number;
 	valueMode?: ValueMode;
+	zeroSnap?: number;
 }
 
 const DEFAULT_FORMAT = "%s";
@@ -38,21 +39,21 @@ export function formatDataRefValue(value: DataRefValue, opts: FormatOptions = {}
 
 		if (type === "s") {
 			if (typeof scalar === "number" && precision !== undefined) {
-				return scaleNumber(scalar, opts.unitScale).toFixed(precision);
+				return scaleAndSnap(scalar, opts).toFixed(precision);
 			}
 			if (typeof scalar === "number") {
-				return scaleNumber(scalar, opts.unitScale).toString();
+				return scaleAndSnap(scalar, opts).toString();
 			}
 			return stringifyScalar(scalar);
 		}
 
 		if (type === "d" || type === "i") {
-			const n = scaleNumber(toNumber(scalar), opts.unitScale);
+			const n = scaleAndSnap(toNumber(scalar), opts);
 			return Math.trunc(n).toString();
 		}
 
 		if (type === "f") {
-			const n = scaleNumber(toNumber(scalar), opts.unitScale);
+			const n = scaleAndSnap(toNumber(scalar), opts);
 			return n.toFixed(precision ?? PRINTF_DEFAULT_FLOAT_PRECISION);
 		}
 
@@ -97,6 +98,13 @@ function bytesToString(bytes: Iterable<number>): string {
 function scaleNumber(n: number, scale?: number): number {
 	if (scale === undefined || !Number.isFinite(scale)) return n;
 	return n * scale;
+}
+
+function scaleAndSnap(n: number, opts: FormatOptions): number {
+	const scaled = scaleNumber(n, opts.unitScale);
+	const t = opts.zeroSnap;
+	if (t !== undefined && Number.isFinite(t) && t > 0 && Math.abs(scaled) <= t) return 0;
+	return scaled;
 }
 
 function toNumber(v: number | string | boolean): number {

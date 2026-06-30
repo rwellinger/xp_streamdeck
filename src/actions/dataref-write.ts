@@ -21,7 +21,7 @@ import { parseDataRefPath } from "../util/dataref-path";
 import { combineTitle } from "../util/error-tile";
 import { formatDataRefValue } from "../util/format";
 import { substitutePlaceholders } from "../util/placeholders";
-import { normalizeFormat, trimString } from "../util/settings";
+import { normalizeFormat, resolveZeroSnap, trimString } from "../util/settings";
 import type { XPlaneClient } from "../xplane";
 import { SubscribableAction, type SubscribableState } from "./base/subscribable-action";
 
@@ -36,12 +36,15 @@ type DataRefWriteSettings = JsonObject & {
 	precision?: string | number;
 	holdMode?: boolean;
 	releaseValue?: string | number;
+	snapZero?: boolean;
+	zeroThreshold?: string | number;
 };
 
 interface ActionState extends SubscribableState<DataRefWriteSettings> {
 	format: string;
 	unitScale?: number;
 	precision?: number;
+	zeroSnap?: number;
 }
 
 @action({ UUID: "com.robertw.xplane.dataref-write" })
@@ -59,6 +62,7 @@ export class XPlaneDataRefWrite extends SubscribableAction<DataRefWriteSettings,
 			format: parsed.format,
 			unitScale: parsed.unitScale,
 			precision: parsed.precision,
+			zeroSnap: parsed.zeroSnap,
 		};
 	}
 
@@ -73,6 +77,7 @@ export class XPlaneDataRefWrite extends SubscribableAction<DataRefWriteSettings,
 		state.format = parsed.format;
 		state.unitScale = parsed.unitScale;
 		state.precision = parsed.precision;
+		state.zeroSnap = parsed.zeroSnap;
 		return { pathChanged };
 	}
 
@@ -82,6 +87,7 @@ export class XPlaneDataRefWrite extends SubscribableAction<DataRefWriteSettings,
 			format: state.format,
 			unitScale: state.unitScale,
 			precision: state.precision,
+			zeroSnap: state.zeroSnap,
 		});
 		state.action
 			.setTitle(combineTitle(state.label, valueText))
@@ -156,6 +162,7 @@ function parseSettings(s: DataRefWriteSettings): {
 	format: string;
 	unitScale?: number;
 	precision?: number;
+	zeroSnap?: number;
 } {
 	const showCurrentValue = s.showCurrentValue === true;
 	return {
@@ -164,5 +171,6 @@ function parseSettings(s: DataRefWriteSettings): {
 		format: normalizeFormat(s.format),
 		unitScale: toFiniteNumber(s.unitScale),
 		precision: toFiniteNumber(s.precision),
+		zeroSnap: resolveZeroSnap(s.snapZero, s.zeroThreshold),
 	};
 }

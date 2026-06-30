@@ -21,7 +21,7 @@ import { applyIndex, parseDataRefPath } from "../util/dataref-path";
 import { clearOffline, NOT_FOUND_SUFFIX, setOffline } from "../util/error-tile";
 import { formatDataRefValue, type ValueMode } from "../util/format";
 import { extractPlaceholderKeys, substitutePlaceholders } from "../util/placeholders";
-import { normalizeFormat, trimString } from "../util/settings";
+import { normalizeFormat, resolveZeroSnap, trimString } from "../util/settings";
 import type { DataRefValue, SubscriptionHandle, XPlaneClient } from "../xplane";
 
 const SLOT_COUNT = 3;
@@ -47,6 +47,8 @@ type MultiDataRefDisplaySettings = JsonObject & {
 	slot3UnitScale?: string | number;
 	slot3Precision?: string | number;
 	slot3ValueMode?: ValueMode;
+	snapZero?: boolean;
+	zeroThreshold?: string | number;
 };
 
 interface SlotState {
@@ -65,6 +67,7 @@ interface ActionState {
 	action: WillAppearEvent<MultiDataRefDisplaySettings>["action"];
 	title: string;
 	slots: SlotState[];
+	zeroSnap?: number;
 }
 
 @action({ UUID: "com.robertw.xplane.multi-dataref-display" })
@@ -84,6 +87,7 @@ export class XPlaneMultiDataRefDisplay extends SingletonAction<MultiDataRefDispl
 			action: ev.action,
 			title: parsed.title,
 			slots: parsed.slots.map((s) => ({ ...s, notFound: false })),
+			zeroSnap: parsed.zeroSnap,
 		};
 		this.states.set(ev.action.id, state);
 
@@ -113,6 +117,7 @@ export class XPlaneMultiDataRefDisplay extends SingletonAction<MultiDataRefDispl
 
 		const parsed = parseSettings(ev.payload.settings ?? {});
 		state.title = parsed.title;
+		state.zeroSnap = parsed.zeroSnap;
 
 		for (let i = 0; i < SLOT_COUNT; i++) {
 			const next = parsed.slots[i];
@@ -183,6 +188,7 @@ export class XPlaneMultiDataRefDisplay extends SingletonAction<MultiDataRefDispl
 							unitScale: slot.unitScale,
 							precision: slot.precision,
 							valueMode: slot.valueMode,
+							zeroSnap: state.zeroSnap,
 						});
 			lines.push(slot.label ? `${slot.label} ${value}` : value);
 		}
@@ -254,11 +260,13 @@ interface ParsedSlot {
 interface ParsedSettings {
 	title: string;
 	slots: ParsedSlot[];
+	zeroSnap?: number;
 }
 
 function parseSettings(s: MultiDataRefDisplaySettings): ParsedSettings {
 	return {
 		title: trimString(s.title),
+		zeroSnap: resolveZeroSnap(s.snapZero, s.zeroThreshold),
 		slots: [
 			parseSlot(
 				s.slot1Label,

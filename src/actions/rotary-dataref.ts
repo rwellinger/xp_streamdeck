@@ -26,7 +26,7 @@ import { parseEnumMap } from "../util/enum";
 import { clearOffline, combineTitle, NOT_FOUND_SUFFIX, setOffline } from "../util/error-tile";
 import { formatDataRefValue } from "../util/format";
 import { extractPlaceholderKeys, substitutePlaceholders } from "../util/placeholders";
-import { normalizeFormat, trimString } from "../util/settings";
+import { normalizeFormat, resolveZeroSnap, trimString } from "../util/settings";
 import type { DataRefValue, SubscriptionHandle, XPlaneClient } from "../xplane";
 
 type RotaryDirection = "left" | "right" | "up" | "down";
@@ -48,6 +48,8 @@ type RotaryDataRefSettings = JsonObject & {
 	unitScale?: string | number;
 	precision?: string | number;
 	enumMap?: string;
+	snapZero?: boolean;
+	zeroThreshold?: string | number;
 };
 
 interface ParsedSettings {
@@ -67,6 +69,7 @@ interface ParsedSettings {
 	precision?: number;
 	enumLut: Map<number, string>;
 	enumValid: boolean;
+	zeroSnap?: number;
 }
 
 interface ActionState {
@@ -306,6 +309,7 @@ export class XPlaneRotaryDataRef extends SingletonAction<RotaryDataRefSettings> 
 				format: parsed.format,
 				unitScale: parsed.unitScale,
 				precision: parsed.precision,
+				zeroSnap: parsed.zeroSnap,
 			});
 			valueText = parsed.unit ? `${formatted} ${parsed.unit}` : formatted;
 		}
@@ -375,6 +379,7 @@ function parseSettings(s: RotaryDataRefSettings): ParsedSettings {
 		precision: toFiniteNumber(s.precision),
 		enumLut,
 		enumValid,
+		zeroSnap: resolveZeroSnap(s.snapZero, s.zeroThreshold),
 	};
 }
 

@@ -96,6 +96,19 @@
 				inputmode="numeric"
 			></sdpi-textfield>
 		</sdpi-item>
+		<sdpi-item label="Zero Snap">
+			<sdpi-checkbox
+				setting="snapZero"
+				label="Snap near-zero values to 0 (suppresses ±jitter and -0)"
+			></sdpi-checkbox>
+		</sdpi-item>
+		<sdpi-item label="Zero Threshold">
+			<sdpi-textfield
+				setting="zeroThreshold"
+				placeholder="default 0.1 — |value| ≤ threshold shows 0"
+				inputmode="decimal"
+			></sdpi-textfield>
+		</sdpi-item>
 		<script>
 			(async () => {
 				const field = document.getElementById("datarefField");

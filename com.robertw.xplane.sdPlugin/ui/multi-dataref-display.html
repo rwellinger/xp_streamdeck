@@ -167,6 +167,20 @@
 			</sdpi-item>
 		</details>
 
+		<sdpi-item label="Zero Snap">
+			<sdpi-checkbox
+				setting="snapZero"
+				label="Snap near-zero values to 0 for all slots (suppresses ±jitter and -0)"
+			></sdpi-checkbox>
+		</sdpi-item>
+		<sdpi-item label="Zero Threshold">
+			<sdpi-textfield
+				setting="zeroThreshold"
+				placeholder="default 0.1 — |value| ≤ threshold shows 0"
+				inputmode="decimal"
+			></sdpi-textfield>
+		</sdpi-item>
+
 		<div class="hint">
 			Title and active slots render as separate lines on the button. Leave a
 			slot's DataRef empty to skip it.
