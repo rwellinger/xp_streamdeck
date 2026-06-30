@@ -374,6 +374,9 @@ export class XPlaneGuardedCommand extends SingletonAction<GuardedCommandSettings
 				);
 				await clearTile(state.action);
 				await state.action.setState(target);
+				// Once valid data arrives, drop the offline image override so the
+				// native state image shows through (mirrors dataref-toggle).
+				await clearOffline(state.action);
 				state.currentState = target;
 			});
 		state.renderPromise = next;
