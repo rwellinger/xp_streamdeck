@@ -39,6 +39,7 @@ type GuardedDataRefSettings = JsonObject & {
 	valueLocked?: string | number;
 	valueUnlocked?: string | number;
 	strictOnMatch?: boolean;
+	enforceLock?: boolean;
 };
 
 const STATE_LOCKED = 0;
@@ -58,6 +59,7 @@ interface ParsedSettings {
 	valueLocked: number;
 	valueUnlocked: number;
 	strictOnMatch: boolean;
+	enforceLock: boolean;
 }
 
 interface ActionState {
@@ -229,6 +231,14 @@ export class XPlaneGuardedDataRef extends SingletonAction<GuardedDataRefSettings
 	private async fireLongPress(state: ActionState, parsed: ParsedSettings): Promise<void> {
 		state.longPressFired = true;
 
+		if (this.isGuardLocked(state, parsed)) {
+			streamDeck.logger.info(
+				`guarded-dataref: long press blocked — guard locked (${state.guardPath})`,
+			);
+			await state.action.showAlert();
+			return;
+		}
+
 		if (!parsed.longPath) {
 			streamDeck.logger.warn("guarded-dataref: longDataRef is empty");
 			await state.action.showAlert();
@@ -279,6 +289,18 @@ export class XPlaneGuardedDataRef extends SingletonAction<GuardedDataRefSettings
 			await this.renderState(state);
 		}
 		return target;
+	}
+
+	// True only when lock enforcement is on, a guard DataRef is configured, and
+	// its last known value maps to "locked". Unknown value → fail open.
+	private isGuardLocked(state: ActionState, parsed: ParsedSettings): boolean {
+		if (!parsed.enforceLock || !parsed.guardPath || state.lastValue === undefined) return false;
+		return !isOnValue(
+			state.lastValue,
+			parsed.valueLocked,
+			parsed.valueUnlocked,
+			parsed.strictOnMatch,
+		);
 	}
 
 	private cancelLongPressTimer(state: ActionState): void {
@@ -497,6 +519,7 @@ function parseSettings(s: GuardedDataRefSettings): ParsedSettings {
 		valueLocked,
 		valueUnlocked,
 		strictOnMatch: s.strictOnMatch === true,
+		enforceLock: s.enforceLock === true,
 	};
 }
 

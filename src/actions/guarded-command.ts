@@ -40,6 +40,7 @@ type GuardedCommandSettings = JsonObject & {
 	valueLocked?: string | number;
 	valueUnlocked?: string | number;
 	strictOnMatch?: boolean;
+	enforceLock?: boolean;
 };
 
 const STATE_LOCKED = 0;
@@ -55,6 +56,7 @@ interface ParsedSettings {
 	valueLocked: number;
 	valueUnlocked: number;
 	strictOnMatch: boolean;
+	enforceLock: boolean;
 	hideShortConfirmation: boolean;
 }
 
@@ -221,6 +223,14 @@ export class XPlaneGuardedCommand extends SingletonAction<GuardedCommandSettings
 	private async fireLongPress(state: ActionState, parsed: ParsedSettings): Promise<void> {
 		state.longPressFired = true;
 
+		if (this.isGuardLocked(state, parsed)) {
+			streamDeck.logger.info(
+				`guarded-command: long press blocked — guard locked (${state.guardPath})`,
+			);
+			await state.action.showAlert();
+			return;
+		}
+
 		if (!parsed.longPath) {
 			streamDeck.logger.warn("guarded-command: longPressCommand is empty");
 			await state.action.showAlert();
@@ -280,6 +290,20 @@ export class XPlaneGuardedCommand extends SingletonAction<GuardedCommandSettings
 			streamDeck.logger.error("guarded-command: long end failed", err);
 			await state.action.showAlert();
 		}
+	}
+
+	// True only when lock enforcement is on, a guard DataRef is configured, and
+	// its last known value maps to STATE_LOCKED. Unknown value → fail open.
+	private isGuardLocked(state: ActionState, parsed: ParsedSettings): boolean {
+		if (!parsed.enforceLock || !parsed.guardPath || state.lastValue === undefined) return false;
+		return (
+			mapValueToStateIndex(
+				state.lastValue,
+				parsed.valueLocked,
+				parsed.valueUnlocked,
+				parsed.strictOnMatch,
+			) === STATE_LOCKED
+		);
 	}
 
 	private cancelLongPressTimer(state: ActionState): void {
@@ -452,6 +476,7 @@ function parseSettings(s: GuardedCommandSettings): ParsedSettings {
 		valueLocked: toFiniteNumber(s.valueLocked) ?? 0,
 		valueUnlocked: toFiniteNumber(s.valueUnlocked) ?? 1,
 		strictOnMatch: s.strictOnMatch === true,
+		enforceLock: s.enforceLock === true,
 		hideShortConfirmation: s.hideShortConfirmation === true,
 	};
 }

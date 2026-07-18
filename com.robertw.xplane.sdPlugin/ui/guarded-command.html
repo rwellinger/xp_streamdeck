@@ -54,7 +54,7 @@
 			</sdpi-select>
 		</sdpi-item>
 
-		<div class="section-hdr">State indicator (optional)</div>
+		<div class="section-hdr">Guard / Lock (optional)</div>
 		<sdpi-item label="Guard DataRef">
 			<sdpi-textfield
 				setting="guardDataRef"
@@ -81,9 +81,14 @@
 				Treat only <code>value === Value Unlocked</code> as unlocked
 			</sdpi-checkbox>
 		</sdpi-item>
+			<sdpi-item label="Enforce Lock">
+				<sdpi-checkbox setting="enforceLock">
+					Block long-press while guard is locked (needs Guard DataRef)
+				</sdpi-checkbox>
+			</sdpi-item>
 		<sdpi-item>
 			<small style="color: #888; font-size: 11px">
-				Assign per-state images (Locked / Unlocked) via the State pickers
+				Enforce Lock reads the Guard DataRef above. Assign per-state images (Locked / Unlocked) via the State pickers
 				above — they're handled by Stream Deck directly.
 			</small>
 		</sdpi-item>
