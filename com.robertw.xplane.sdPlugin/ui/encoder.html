@@ -1,0 +1,182 @@
+<!doctype html>
+<!--
+  xp_streamdeck - Stream Deck plugin for X-Plane 12
+  Copyright (c) 2026 thWelly
+
+  Licensed under the MIT License.
+  See the LICENSE file in the project root for full license text.
+-->
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>X-Plane Encoder</title>
+		<script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+		<script src="xplane-pi-helpers.js"></script>
+		<style>
+			.live-preview {
+				font-family: monospace;
+				color: #aaa;
+				font-size: 11px;
+				word-break: break-all;
+			}
+			.live-preview[data-state="not-found"],
+			.live-preview[data-state="error"] {
+				color: #d97;
+			}
+			.hint {
+				color: #888;
+				font-size: 11px;
+				padding: 4px 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="hint">
+			Rotate = fine. Press+rotate = shift. Press+release (no turn) = click.
+		</div>
+
+		<sdpi-item label="Drive Mode">
+			<sdpi-select setting="driveMode" default="dataref" id="driveModeSelect">
+				<option value="dataref">DataRef step</option>
+				<option value="command">Command pair</option>
+			</sdpi-select>
+		</sdpi-item>
+
+		<details open id="datarefDrive">
+			<summary>DataRef rotate</summary>
+			<sdpi-item label="Step Mode">
+				<sdpi-select setting="stepMode" default="linear">
+					<option value="linear">Linear</option>
+					<option value="octal">Octal / XPDR</option>
+				</sdpi-select>
+			</sdpi-item>
+			<sdpi-item label="Delta">
+				<sdpi-textfield setting="delta" placeholder="1" inputmode="decimal"></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Min">
+				<sdpi-textfield setting="minValue" placeholder="optional" inputmode="decimal"></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Max">
+				<sdpi-textfield setting="maxValue" placeholder="e.g. 7777" inputmode="decimal"></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Endstop">
+				<sdpi-checkbox setting="hideEndstopAlert" label="Hide alert at Min/Max"></sdpi-checkbox>
+			</sdpi-item>
+		</details>
+
+		<details id="commandDrive">
+			<summary>Command rotate</summary>
+			<sdpi-item label="CW">
+				<sdpi-textfield setting="commandPath" placeholder="…_up" id="commandField"></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="CCW">
+				<sdpi-textfield
+					setting="commandPathReverse"
+					placeholder="…_down"
+					id="commandReverseField"
+				></sdpi-textfield>
+			</sdpi-item>
+		</details>
+
+		<details open>
+			<summary>Click</summary>
+			<sdpi-item label="Command">
+				<sdpi-textfield
+					setting="clickCommand"
+					placeholder="optional"
+					id="clickCommandField"
+				></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Hold">
+				<sdpi-checkbox
+					setting="clickHoldMode"
+					label="begin/end while pressed (cancelled if shifted)"
+				></sdpi-checkbox>
+			</sdpi-item>
+		</details>
+
+		<details open>
+			<summary>Shift (press + rotate)</summary>
+			<sdpi-item label="Shift Delta">
+				<sdpi-textfield
+					setting="coarseDelta"
+					placeholder="DataRef coarse (octal: 8/64/512)"
+					inputmode="decimal"
+				></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Shift CW">
+				<sdpi-textfield
+					setting="shiftCommandPath"
+					placeholder="optional"
+					id="shiftCommandField"
+				></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Shift CCW">
+				<sdpi-textfield
+					setting="shiftCommandPathReverse"
+					placeholder="optional"
+					id="shiftCommandReverseField"
+				></sdpi-textfield>
+			</sdpi-item>
+		</details>
+
+		<sdpi-item label="DataRef Path">
+			<sdpi-textfield
+				setting="datarefPath"
+				placeholder="sim/cockpit2/radios/actuators/transponder_code"
+				id="datarefField"
+			></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Live Value">
+			<span class="live-preview" id="datarefPreview"></span>
+		</sdpi-item>
+		<sdpi-item label="Label">
+			<sdpi-textfield setting="label" placeholder="shown above value"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Format">
+			<sdpi-textfield setting="format" placeholder="%.0f"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Unit">
+			<sdpi-textfield setting="unit" placeholder="optional"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Unit Scale">
+			<sdpi-textfield setting="unitScale" placeholder="optional" inputmode="decimal"></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Precision">
+			<sdpi-textfield setting="precision" placeholder="optional" inputmode="numeric"></sdpi-textfield>
+		</sdpi-item>
+
+		<script>
+			(async () => {
+				const driveModeSelect = document.getElementById("driveModeSelect");
+				const datarefDrive = document.getElementById("datarefDrive");
+				const commandDrive = document.getElementById("commandDrive");
+				const sync = () => {
+					const mode = driveModeSelect?.value ?? "dataref";
+					if (datarefDrive) datarefDrive.open = mode === "dataref";
+					if (commandDrive) commandDrive.open = mode === "command";
+				};
+				driveModeSelect?.addEventListener("valuechange", sync);
+				driveModeSelect?.addEventListener("input", sync);
+				setTimeout(sync, 0);
+				setTimeout(sync, 200);
+
+				if (!window.XPlanePI) return;
+				for (const [id, kind] of [
+					["commandField", "command"],
+					["commandReverseField", "command"],
+					["clickCommandField", "command"],
+					["shiftCommandField", "command"],
+					["shiftCommandReverseField", "command"],
+					["datarefField", "dataref"],
+				]) {
+					const el = document.getElementById(id);
+					if (el) await window.XPlanePI.attachAutocomplete(el, kind);
+				}
+				const datarefField = document.getElementById("datarefField");
+				const preview = document.getElementById("datarefPreview");
+				if (datarefField) await window.XPlanePI.attachLivePreview(datarefField, preview);
+			})();
+		</script>
+	</body>
+</html>

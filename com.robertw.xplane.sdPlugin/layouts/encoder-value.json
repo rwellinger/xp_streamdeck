@@ -1,0 +1,22 @@
+{
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/layout.json",
+	"id": "encoder-value",
+	"items": [
+		{
+			"key": "label",
+			"type": "text",
+			"rect": [8, 8, 184, 24],
+			"font": { "size": 14, "weight": 600 },
+			"alignment": "center",
+			"value": ""
+		},
+		{
+			"key": "value",
+			"type": "text",
+			"rect": [8, 36, 184, 52],
+			"font": { "size": 26, "weight": 600 },
+			"alignment": "center",
+			"value": ""
+		}
+	]
+}

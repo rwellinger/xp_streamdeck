@@ -114,6 +114,29 @@
 			]
 		},
 		{
+			"Name": "Encoder",
+			"UUID": "com.robertw.xplane.encoder",
+			"Icon": "imgs/actions/rotary/icon",
+			"Tooltip": "Stream Deck+ dial: rotate / click / shift. DataRef step (linear or octal) or CW/CCW commands. Live value on the touch strip.",
+			"PropertyInspectorPath": "ui/encoder.html",
+			"Controllers": [
+				"Encoder"
+			],
+			"Encoder": {
+				"layout": "layouts/encoder-value.json",
+				"TriggerDescription": {
+					"Rotate": "Fine adjust",
+					"Push": "Click command"
+				}
+			},
+			"States": [
+				{
+					"Image": "imgs/actions/rotary/key",
+					"TitleAlignment": "middle"
+				}
+			]
+		},
+		{
 			"Name": "DataRef Display",
 			"UUID": "com.robertw.xplane.dataref-display",
 			"Icon": "imgs/actions/dataref-display/icon",
