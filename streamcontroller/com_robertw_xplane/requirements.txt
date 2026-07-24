@@ -1,0 +1,2 @@
+# Frontend / normal requirements for StreamController install.
+# (stdlib urllib only for now — keep empty unless you add pip deps.)

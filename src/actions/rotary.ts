@@ -25,6 +25,7 @@ import { clearOffline, combineTitle, NOT_FOUND_SUFFIX, setOffline } from "../uti
 import { formatDataRefValue } from "../util/format";
 import { extractPlaceholderKeys, substitutePlaceholders } from "../util/placeholders";
 import { normalizeFormat, resolveZeroSnap, trimString } from "../util/settings";
+import { applyStep } from "../util/step";
 import type { DataRefValue, SubscriptionHandle, XPlaneClient } from "../xplane";
 
 type RotaryDirection = "left" | "right" | "up" | "down";
@@ -33,8 +34,13 @@ type RotaryFormatMode = "numeric" | "enum";
 type RotarySettings = JsonObject & {
 	commandPath?: string;
 	hideConfirmation?: boolean;
+	hideEndstopAlert?: boolean;
 	direction?: RotaryDirection;
 	datarefPath?: string;
+	delta?: string | number;
+	minValue?: string | number;
+	maxValue?: string | number;
+	cycle?: boolean;
 	label?: string;
 	formatMode?: RotaryFormatMode;
 	format?: string;
@@ -51,6 +57,12 @@ type RotarySettings = JsonObject & {
 interface ParsedSettings {
 	commandPath: string;
 	datarefPath: string;
+	delta?: number;
+	sign: 1 | -1;
+	minValue?: number;
+	maxValue?: number;
+	cycle: boolean;
+	hideEndstopAlert: boolean;
 	label: string;
 	formatMode: RotaryFormatMode;
 	format: string;
@@ -149,17 +161,17 @@ export class XPlaneRotary extends SingletonAction<RotarySettings> {
 		const parsed = parseSettings(ev.payload.settings ?? {});
 		const hideConfirmation = ev.payload.settings?.hideConfirmation === true;
 
-		if (!parsed.commandPath && !parsed.holdCommand) {
-			streamDeck.logger.warn("rotary: commandPath and holdCommand are both empty");
+		const canStep = parsed.delta !== undefined && !!parsed.datarefPath;
+		if (!parsed.commandPath && !parsed.holdCommand && !canStep) {
+			streamDeck.logger.warn(
+				"rotary: commandPath / holdCommand / delta+datarefPath are all empty",
+			);
 			await ev.action.showAlert();
 			return;
 		}
 
 		const snap = selectors.snapshot();
 
-		// HOLD branch: enum mode + checkbox on + current value is second-to-last
-		// (so the next step would land on the last position). Uses begin/end on
-		// `holdCommand` instead of activate on `commandPath`.
 		if (shouldHoldOnLast(state, parsed)) {
 			const holdCommand = substitutePlaceholders(parsed.holdCommand, snap);
 			try {
@@ -177,6 +189,12 @@ export class XPlaneRotary extends SingletonAction<RotarySettings> {
 			return;
 		}
 
+		// Optional DataRef step (cycle/clamp) — takes precedence over command activate.
+		if (canStep && state) {
+			await this.stepDataRef(state, parsed, hideConfirmation);
+			return;
+		}
+
 		if (parsed.formatMode === "enum" && !parsed.enumValid) {
 			streamDeck.logger.warn("rotary: enumMap parse error — refusing to fire command");
 			await ev.action.showAlert();
@@ -184,7 +202,7 @@ export class XPlaneRotary extends SingletonAction<RotarySettings> {
 		}
 
 		if (!parsed.commandPath) {
-			streamDeck.logger.warn("rotary: commandPath empty (HOLD branch did not apply)");
+			streamDeck.logger.warn("rotary: commandPath empty (HOLD / step did not apply)");
 			await ev.action.showAlert();
 			return;
 		}
@@ -200,6 +218,48 @@ export class XPlaneRotary extends SingletonAction<RotarySettings> {
 		} catch (err) {
 			streamDeck.logger.error(`rotary: command failed: ${commandPath}`, err);
 			await ev.action.showAlert();
+		}
+	}
+
+	private async stepDataRef(
+		state: ActionState,
+		parsed: ParsedSettings,
+		hideConfirmation: boolean,
+	): Promise<void> {
+		const delta = parsed.delta;
+		if (delta === undefined || !(delta > 0) || !parsed.datarefPath) {
+			await state.action.showAlert();
+			return;
+		}
+		try {
+			const resolvedPath = substitutePlaceholders(parsed.datarefPath, selectors.snapshot());
+			const { basePath, index } = parseDataRefPath(resolvedPath);
+			const drId = await this.xplane.getDataRefId(basePath);
+			const currentRaw =
+				state.lastValue !== undefined
+					? state.lastValue
+					: applyIndex(await this.xplane.readDataRef(drId), index);
+			const current = coerceNumber(currentRaw) ?? 0;
+			const { value: target, blocked } = applyStep(current, parsed.sign * delta, {
+				min: parsed.minValue,
+				max: parsed.maxValue,
+				cycle: parsed.cycle,
+			});
+			if (blocked) {
+				streamDeck.logger.info(
+					`rotary: step at endstop for ${resolvedPath} (value=${current})`,
+				);
+				if (!parsed.hideEndstopAlert) await state.action.showAlert();
+				return;
+			}
+			await this.xplane.writeDataRef(drId, target, index);
+			streamDeck.logger.info(`rotary: step ${resolvedPath} ${current} → ${target}`);
+			state.lastValue = target;
+			this.render(state);
+			if (!hideConfirmation && state.action.isKey()) await state.action.showOk();
+		} catch (err) {
+			streamDeck.logger.error("rotary: dataref step failed", err);
+			await state.action.showAlert();
 		}
 	}
 
@@ -363,9 +423,18 @@ function shouldHoldOnLast(state: ActionState | undefined, parsed: ParsedSettings
 function parseSettings(s: RotarySettings): ParsedSettings {
 	const formatMode: RotaryFormatMode = s.formatMode === "enum" ? "enum" : "numeric";
 	const { enumLut, enumMaxIndex, enumValid } = parseEnumMap(s.enumMap ?? "");
+	const deltaRaw = toFiniteNumber(s.delta);
+	const delta = deltaRaw !== undefined && deltaRaw > 0 ? deltaRaw : undefined;
+	const sign: 1 | -1 = s.direction === "left" || s.direction === "down" ? -1 : 1;
 	return {
 		commandPath: trimString(s.commandPath),
 		datarefPath: trimString(s.datarefPath),
+		delta,
+		sign,
+		minValue: toFiniteNumber(s.minValue),
+		maxValue: toFiniteNumber(s.maxValue),
+		cycle: s.cycle === true,
+		hideEndstopAlert: s.hideEndstopAlert === true,
 		label: trimString(s.label),
 		formatMode,
 		format: normalizeFormat(s.format),

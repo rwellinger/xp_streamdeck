@@ -46,12 +46,44 @@
 		</sdpi-item>
 		<sdpi-item label="Direction">
 			<sdpi-select setting="direction" default="right">
-				<option value="right">Right (CW)</option>
-				<option value="left">Left (CCW)</option>
-				<option value="up">Up</option>
-				<option value="down">Down</option>
+				<option value="right">Right (CW / +delta)</option>
+				<option value="left">Left (CCW / −delta)</option>
+				<option value="up">Up (+delta)</option>
+				<option value="down">Down (−delta)</option>
 			</sdpi-select>
 		</sdpi-item>
+		<details>
+			<summary>DataRef step (optional — instead of Command on press)</summary>
+			<div class="hint">
+				When Delta is set, press writes DataRef Path by ±Delta (Direction sets the
+				sign) instead of firing Command Path. Use with Min/Max/Cycle like Rotary DataRef.
+			</div>
+			<sdpi-item label="Delta">
+				<sdpi-textfield
+					setting="delta"
+					placeholder="leave empty to use Command Path"
+					inputmode="decimal"
+				></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Min Value">
+				<sdpi-textfield setting="minValue" placeholder="optional" inputmode="decimal"></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Max Value">
+				<sdpi-textfield setting="maxValue" placeholder="optional" inputmode="decimal"></sdpi-textfield>
+			</sdpi-item>
+			<sdpi-item label="Cycle">
+				<sdpi-checkbox
+					setting="cycle"
+					label="Wrap at Min/Max (step through the grid and repeat)"
+				></sdpi-checkbox>
+			</sdpi-item>
+			<sdpi-item label="Endstop">
+				<sdpi-checkbox
+					setting="hideEndstopAlert"
+					label="Hide alert when already at Min/Max"
+				></sdpi-checkbox>
+			</sdpi-item>
+		</details>
 		<sdpi-item label="DataRef Path">
 			<sdpi-textfield
 				setting="datarefPath"

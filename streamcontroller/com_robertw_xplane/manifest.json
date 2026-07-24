@@ -1,0 +1,9 @@
+{
+	"version": "0.2.0",
+	"thumbnail": "assets/info.png",
+	"id": "com_robertw_xplane",
+	"name": "X-Plane",
+	"descriptions": {
+		"en_US": "Control X-Plane 12 from StreamController via the native Web API (Command, DataRef Display, Encoder, Rotary with cycle)."
+	}
+}

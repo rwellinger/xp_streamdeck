@@ -1,0 +1,10 @@
+{
+	"github-sponsors": "4SLSL",
+	"generic": {
+		"copyright": "Copyright (c) 2026 thWelly / 4LSL",
+		"license": "MIT",
+		"license-url": "https://opensource.org/licenses/MIT",
+		"description": "X-Plane 12 plugin for StreamController",
+		"url": "https://github.com/4SLSL/xp-sdcontroller"
+	}
+}

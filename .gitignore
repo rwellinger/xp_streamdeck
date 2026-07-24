@@ -40,3 +40,8 @@ Thumbs.db
 
 # Local Claude Code settings (per-machine)
 .claude/settings.local.json
+
+# Local StreamController shop checkout (lives at ../xp-sdcontroller)
+_xp-sdcontroller/
+gh
+*.AppImage

@@ -18,7 +18,7 @@ import streamDeck, {
 } from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 
-import { TIMINGS, TOLERANCE_FLOAT } from "../const";
+import { TIMINGS } from "../const";
 import { selectors } from "../selectors/registry";
 import { coerceNumber, toFiniteNumber } from "../util/coerce";
 import { applyIndex, parseDataRefPath } from "../util/dataref-path";
@@ -27,6 +27,7 @@ import { clearOffline, combineTitle, NOT_FOUND_SUFFIX, setOffline } from "../uti
 import { formatDataRefValue } from "../util/format";
 import { extractPlaceholderKeys, substitutePlaceholders } from "../util/placeholders";
 import { normalizeFormat, resolveZeroSnap, trimString } from "../util/settings";
+import { applyStep } from "../util/step";
 import type { DataRefValue, SubscriptionHandle, XPlaneClient } from "../xplane";
 
 type RotaryDirection = "left" | "right" | "up" | "down";
@@ -39,6 +40,7 @@ type RotaryDataRefSettings = JsonObject & {
 	direction?: RotaryDirection;
 	minValue?: string | number;
 	maxValue?: string | number;
+	cycle?: boolean;
 	hideConfirmation?: boolean;
 	hideEndstopAlert?: boolean;
 	label?: string;
@@ -59,6 +61,7 @@ interface ParsedSettings {
 	sign: 1 | -1;
 	minValue?: number;
 	maxValue?: number;
+	cycle: boolean;
 	hideConfirmation: boolean;
 	hideEndstopAlert: boolean;
 	label: string;
@@ -208,11 +211,13 @@ export class XPlaneRotaryDataRef extends SingletonAction<RotaryDataRefSettings> 
 					: applyIndex(await this.xplane.readDataRef(drId), index);
 			const current = coerceNumber(currentRaw) ?? 0;
 
-			let target = current + parsed.sign * step;
-			if (parsed.minValue !== undefined && target < parsed.minValue) target = parsed.minValue;
-			if (parsed.maxValue !== undefined && target > parsed.maxValue) target = parsed.maxValue;
+			const { value: target, blocked } = applyStep(current, parsed.sign * step, {
+				min: parsed.minValue,
+				max: parsed.maxValue,
+				cycle: parsed.cycle,
+			});
 
-			if (Math.abs(target - current) < TOLERANCE_FLOAT) {
+			if (blocked) {
 				streamDeck.logger.info(
 					`rotary-dataref: ${kind} press at endstop for ${resolvedPath} (value=${current})`,
 				);
@@ -369,6 +374,7 @@ function parseSettings(s: RotaryDataRefSettings): ParsedSettings {
 		sign,
 		minValue: toFiniteNumber(s.minValue),
 		maxValue: toFiniteNumber(s.maxValue),
+		cycle: s.cycle === true,
 		hideConfirmation: s.hideConfirmation === true,
 		hideEndstopAlert: s.hideEndstopAlert === true,
 		label: trimString(s.label),

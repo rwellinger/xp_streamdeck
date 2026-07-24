@@ -76,8 +76,17 @@
 		</sdpi-item>
 		<div class="hint">
 			Leave Min/Max empty for unbounded setpoints. With both set, the value
-			clamps at the endstops and the button flashes the alert icon when
-			already at the limit (unless suppressed below).
+			clamps at the endstops (unless Cycle is checked) and the button flashes
+			the alert icon when already at the limit (unless suppressed below).
+		</div>
+		<sdpi-item label="Cycle">
+			<sdpi-checkbox
+				setting="cycle"
+				label="Wrap at Min/Max (step through the grid and repeat)"
+			></sdpi-checkbox>
+		</sdpi-item>
+		<div class="hint">
+			Requires Min and Max. Example: Min 0, Max 30, Delta 10 → 0→10→20→30→0.
 		</div>
 		<sdpi-item label="Feedback">
 			<sdpi-checkbox

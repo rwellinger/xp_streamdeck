@@ -29,6 +29,7 @@ import { formatDataRefValue } from "../util/format";
 import { stepOctalCode } from "../util/octal";
 import { extractPlaceholderKeys, substitutePlaceholders } from "../util/placeholders";
 import { normalizeFormat, resolveZeroSnap, trimString } from "../util/settings";
+import { applyStep } from "../util/step";
 import type { DataRefValue, SubscriptionHandle, XPlaneClient } from "../xplane";
 
 type DriveMode = "dataref" | "command";
@@ -42,6 +43,7 @@ type EncoderSettings = JsonObject & {
 	coarseDelta?: string | number;
 	minValue?: string | number;
 	maxValue?: string | number;
+	cycle?: boolean;
 	hideEndstopAlert?: boolean;
 	commandPath?: string;
 	commandPathReverse?: string;
@@ -66,6 +68,7 @@ interface Parsed {
 	coarseDelta?: number;
 	minValue?: number;
 	maxValue?: number;
+	cycle: boolean;
 	hideEndstopAlert: boolean;
 	commandPath: string;
 	commandPathReverse: string;
@@ -268,16 +271,20 @@ export class XPlaneEncoder extends SingletonAction<EncoderSettings> {
 					: applyIndex(await this.xplane.readDataRef(drId), index);
 			const current = coerceNumber(currentRaw) ?? 0;
 
-			let target =
-				parsed.stepMode === "octal"
-					? stepOctalCode(current, step, parsed.minValue, parsed.maxValue)
-					: current + step;
-			if (parsed.stepMode !== "octal") {
-				if (parsed.minValue !== undefined) target = Math.max(target, parsed.minValue);
-				if (parsed.maxValue !== undefined) target = Math.min(target, parsed.maxValue);
+			let target: number;
+			let blocked: boolean;
+			if (parsed.stepMode === "octal") {
+				target = stepOctalCode(current, step, parsed.minValue, parsed.maxValue);
+				blocked = Math.abs(target - current) < TOLERANCE_FLOAT;
+			} else {
+				({ value: target, blocked } = applyStep(current, step, {
+					min: parsed.minValue,
+					max: parsed.maxValue,
+					cycle: parsed.cycle,
+				}));
 			}
 
-			if (Math.abs(target - current) < TOLERANCE_FLOAT) {
+			if (blocked) {
 				if (!parsed.hideEndstopAlert) await state.action.showAlert();
 				return;
 			}
@@ -386,6 +393,7 @@ function parse(s: EncoderSettings): Parsed {
 		coarseDelta: coarseRaw !== undefined && coarseRaw > 0 ? coarseRaw : undefined,
 		minValue: toFiniteNumber(s.minValue),
 		maxValue: toFiniteNumber(s.maxValue),
+		cycle: s.cycle === true,
 		hideEndstopAlert: s.hideEndstopAlert === true,
 		commandPath: trimString(s.commandPath),
 		commandPathReverse: trimString(s.commandPathReverse),
