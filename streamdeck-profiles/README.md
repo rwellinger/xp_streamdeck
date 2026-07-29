@@ -86,6 +86,29 @@ Streamdeck models currently supported by the profiles:
 > [!TIP]  
 > You can open Streamdeck 3 or Streamdeck MK2 profiles on Streamdeck XL without problems, but if you open Streamdeck XL profiles on Streamdeck 3 or Streamdeck MK2 the profiles would appear cropped.
 
+## Phone & Tablet Profiles ##
+
+Profiles for the Stream Deck Mobile app on a phone or tablet — no physical deck
+required. They cover the avionics side (Garmin 430/530, G1000, FMS, autopilot)
+and are meant to run *alongside* a hardware deck, not to replace an aircraft
+profile.
+
+Directory: `Phone or Tablet/` — see its own [README](<Phone or Tablet/README.md>)
+for the author's notes. Created and contributed by **PetiLoco123**.
+
+| **Profile** | Layout |
+| --- | --- |
+| `XP H G530 G1000` | horizontal |
+| `XP V G1000 FMS` | vertical |
+| `XP V G530 FMS` | vertical |
+| `XP V G530 G1000 FMS` | vertical |
+
+> [!NOTE]  
+> These are not part of the default `make export` / `make import` run (which
+> targets `StreamDeck XL`). Import them with the mobile device paired via
+> `make import DIR="Phone or Tablet"`, so the archives get stamped onto that
+> device instead of the hardware deck.
+
 ## X-Plane Menu Profile
 
 This is a default Profile where all profiles are included. Required to link all profiles together. The import/export mechanism supports this on the sync.
