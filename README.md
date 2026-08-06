@@ -20,12 +20,12 @@ Native Stream Deck plugin for X-Plane 12 — runs on macOS and Windows, talking 
 
 ## Features
 
-- Native Stream Deck plugin for X-Plane 12 (Stream Deck XL, MK2 and Stream Deck 3) — no XPLM C++ side required.
+- Native Stream Deck plugin for X-Plane 12 (Stream Deck XL, MK2, Stream Deck 3, and Stream Deck+) — no XPLM C++ side required.
 - Cross-platform: macOS 12+ and Windows 10+ (build & runtime).
 - Talks to the X-Plane Web API on `localhost:8086` — REST + WebSocket, ~10 Hz live DataRef updates.
 - Drives any DataRef or CommandRef from a button, including array-indexed DataRefs via `name[N]` (see [Array DataRefs](#array-datarefs)).
 - [Display Selector](#display-selector): one set of buttons drives multiple identical panels (e.g. AW109 `EDU1..EDU4`) via `{KEY}` placeholders in every DataRef / Command path.
-- 16 button action types — fire commands, write DataRefs, render live values, two-stage guarded covers, multi-position switches, scripted multi-action macros, wind arrow, …
+- 17 action types — fire commands, write DataRefs, render live values, two-stage guarded covers, multi-position switches, scripted multi-action macros, wind arrow, Stream Deck+ dial Encoder, …
 - Locally generated, visually consistent button icons (5 kinds, color-coded by group) — see [Button icons](#button-icons).
 - macOS profile sync via `make export` / `make import` — preserves folder UUIDs so parent-profile cross-links survive across machines.
 - Cross-platform PilotsDeck profile converter (`make convert`) — adapt an existing PilotsDeck `.streamDeckProfile` to this plugin (see [Converting a PilotsDeck profile](#converting-a-pilotsdeck-profile)).
@@ -38,6 +38,7 @@ Native Stream Deck plugin for X-Plane 12 — runs on macOS and Windows, talking 
 | [Command + Display](#command--display) | CommandRef on press + live DataRef title. |
 | [Rotary](#rotary) | Rotary-knob step command + live DataRef title (numeric or enum, with optional starter HOLD). |
 | [Rotary DataRef](#rotary-dataref) | Increment / decrement a writable DataRef by a fixed step (with optional coarse step on long press). |
+| [Encoder](#encoder) | Stream Deck+ dial — rotate / press / press+rotate with live feedback on the touch strip. |
 | [DataRef Display](#dataref-display) | Pure read-only live DataRef value as button title. |
 | [Multi DataRef Display](#multi-dataref-display) | Up to 3 live DataRefs stacked on one button. |
 | [Wind Display](#wind-display) | Rotating wind arrow + speed (and optional OAT). |
@@ -83,7 +84,7 @@ Per-aircraft feature notes, the full Stream Deck **model compatibility matrix** 
 ## Platform support
 
 - **Plugin runtime:** macOS 12+ and Windows 10+. Sideload from a Release tarball or build from this repo.
-- **Stream Deck hardware:** the plugin runs on any Stream Deck. Bundled profiles target the Stream Deck XL (4×8); Stream Deck MK2 and Stream Deck 3 (3×15) layouts are being added — see the [model compatibility matrix](streamdeck-profiles/README.md#streamdeck-models-support). XL can open MK2 / SD3 profiles fine; the reverse appears cropped.
+- **Stream Deck hardware:** the plugin runs on any Stream Deck. Bundled profiles target the Stream Deck XL (4×8); Stream Deck MK2 and Stream Deck 3 (3×15) layouts are being added — see the [model compatibility matrix](streamdeck-profiles/README.md#streamdeck-models-support). XL can open MK2 / SD3 profiles fine; the reverse appears cropped. Stream Deck+ dials use the dedicated [Encoder](#encoder) action.
 - **Build & dev tooling:** `npm install`, `npm run build`, and `npm run icons` work on both OS. The `make` targets are convenience wrappers for macOS/Linux shells — Windows users should call the underlying `npm` scripts directly.
 - **`make export` / `make import`** (Stream Deck profile sync) is **macOS-only** because it drives the Stream Deck app via AppleScript and reads `~/Library/...`. Windows users manage profiles via the Stream Deck app's built-in import/export UI.
 - Initial Windows port and AW109-profile validation were contributed by a community user.
@@ -293,6 +294,64 @@ Property Inspector fields:
 | Unit | `°` |
 
 Pair with a second key on the same DataRef, `Direction = Left (− delta)`, same Delta / Coarse Delta.
+
+### Encoder
+
+Dial-only action for the **Stream Deck+** touch encoders (`Controllers: ["Encoder"]`). Keys never see this action — use [Rotary](#rotary) / [Rotary DataRef](#rotary-dataref) on the keypad.
+
+Gestures:
+
+| Gesture | Behaviour |
+| --- | --- |
+| Rotate | Fine step (CW / CCW) |
+| Press + rotate | Shift / coarse step |
+| Press + release (no turn) | Optional click command |
+
+**Drive Mode** chooses how rotate is wired:
+
+- **DataRef step** — write `value ± delta` (or ± shift delta while pressed) to a writable DataRef. Optional Min / Max clamp with endstop alert. **Step Mode** `Linear` (default) or `Octal / XPDR` for transponder-style octal digit stepping.
+- **Command pair** — fire separate CW / CCW CommandRefs (and optional shift CW / CCW while pressed).
+
+The touch strip uses a custom layout (`layouts/encoder-value.json`) that shows the label above the live value — no default blue icon chrome.
+
+Property Inspector fields:
+
+- **Drive Mode** — `DataRef step` or `Command pair`.
+- **DataRef rotate** *(DataRef mode)* — Step Mode, Delta, Min, Max, Hide alert at Min/Max.
+- **Command rotate** *(Command mode)* — CW / CCW CommandRefs.
+- **Click** — optional CommandRef on press+release; optional HOLD begin/end while pressed (cancelled if the dial is shifted).
+- **Shift (press + rotate)** — Shift Delta (DataRef) or shift CW / CCW commands (Command mode).
+- **Display** — DataRef Path for the live strip value, Label, Format, Unit, Unit Scale, Precision (same formatting pipeline as other numeric actions). Supports array indexing and `{KEY}` placeholders.
+
+#### Example: HDG bug on a Stream Deck+ dial
+
+| Field | Value |
+| --- | --- |
+| Drive Mode | `DataRef step` |
+| Step Mode | `Linear` |
+| Delta | `1` |
+| Shift Delta | `10` |
+| Min | `0` |
+| Max | `360` |
+| DataRef Path | `sim/cockpit2/autopilot/heading_dial_deg_mag_pilot` |
+| Label | `HDG` |
+| Format | `%.0f` |
+| Unit | `°` |
+
+Rotate changes heading by 1°; press+rotate by 10°.
+
+#### Example: XPDR code (octal)
+
+| Field | Value |
+| --- | --- |
+| Drive Mode | `DataRef step` |
+| Step Mode | `Octal / XPDR` |
+| Delta | `1` |
+| Min | `0` |
+| Max | `7777` |
+| DataRef Path | `sim/cockpit2/radios/actuators/transponder_code` |
+| Label | `XPDR` |
+| Format | `%04.0f` |
 
 ### DataRef Display
 
