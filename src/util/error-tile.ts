@@ -47,7 +47,8 @@ export function clearTile<T extends JsonObject>(action: KeyAction<T>, label = ""
  * absent long enough for the client to emit "offline".
  *
  * No-op for DialActions — the offline placeholder is designed for the 144×144
- * key bitmap, and we don't currently target encoder displays.
+ * key bitmap. Encoders show their offline state on the touch strip instead,
+ * via setDialFeedback(..., "OFFLINE") in src/actions/encoder.ts.
  */
 export async function setOffline<T extends JsonObject>(
 	action: KeyAction<T> | DialAction<T>,
