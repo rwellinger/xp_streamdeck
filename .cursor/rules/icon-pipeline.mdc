@@ -1,0 +1,33 @@
+---
+description: Generated button icon catalog and template rules
+globs: scripts/icons/**,scripts/generate-icons.ts
+alwaysApply: false
+---
+
+# Icon pipeline
+
+- Entry: `make icons` → `tsx scripts/generate-icons.ts` → `out/icons/<group>/*.png` (144×144, gitignored)
+- Add an icon = one row in `scripts/icons/catalog.ts`. Style lives only in `template.ts`.
+- Accent color = `GROUP_ACCENT[def.group]` — never per-icon. New color category → extend `IconGroup` + `GROUP_ACCENT`.
+- New visual shape → new `kind` + new render function. Do not branch per-icon style inside a renderer.
+
+## Kinds
+
+| kind | output | notes |
+|------|--------|--------|
+| `toggle` | `<name>_on.png` + `_off.png` | label + LED bar |
+| `display` | `<name>.png` | caption top; lower ⅔ empty for `setTitle()` |
+| `nudge` | `<name>.png` | label + triangle (`double: true` → two) |
+| `background` | `<name>.png` | solid `color`; group `backgrounds` |
+
+## Groups / accents
+
+- `autopilot` → `#eab308`; `lights`/`cockpit` → `#22c55e`; `readouts` → `#ffffff`
+- `backgrounds` — no group accent; each entry has its own `color`
+
+## Labels
+
+- Toggle: ≤4 chars @ 44px; then shrink steps via `toggleFontSize()` (same length → same size)
+- Display: 22px (≤6 chars); Nudge: 36px (≤4 chars)
+
+Font: embedded Inter (`XPSDInter`) via `withEmbeddedFont()` — reproducible cross-platform.

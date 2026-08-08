@@ -1,0 +1,37 @@
+---
+description: xp_streamdeck project overview, stack, working style
+alwaysApply: true
+---
+
+# xp_streamdeck
+
+Stream Deck plugin (macOS + Windows, XL) for X-Plane 12 via native Web API — any DataRef/CommandRef from a button, including state images. No custom XPLM C++ plugin.
+
+## Stack
+
+- TypeScript strict, Node.js 24+, `@elgato/streamdeck`, Rollup
+- HTTP: native `fetch`; WebSocket: `ws`
+- Property Inspector: HTML + vanilla JS / sdpi-components v4
+- Pre-commit: `make check` (Biome + `tsc --noEmit`) — must be green before commit
+
+## Layout
+
+- `com.robertw.xplane.sdPlugin/` — plugin bundle (manifest, `bin/plugin.js`, `ui/`, `imgs/`)
+- `src/plugin.ts` — entry; `src/actions/` — one file per action; `src/xplane/` — Web API; `src/util/`
+- `scripts/` — smoke client + icon generator (`catalog.ts` / `template.ts`)
+- Milestones: `.claude/tasks/M01..M08-*.md` (re-read the relevant file; don't rely on prior session memory)
+- Full reference: `CLAUDE.md`
+
+## Working style
+
+- Walking skeleton first, then breadth. One milestone per session.
+- English in code, comments, manifest, milestones. **German with the user.**
+- No comments unless the *why* is non-obvious. No premature abstractions.
+- Verify with the milestone's verification steps before claiming done.
+
+## X-Plane Web API (quick)
+
+- REST `http://localhost:8086/api/v3`, WS `ws://localhost:8086/api/v3` — pin `/api/v3`
+- Numeric DataRef/Command IDs are **session-scoped** — re-resolve after every X-Plane restart
+- Dev laptop: no Stream Deck hardware; final HW check on flight-sim Mac. No local Windows box.
+- Suspect plugin vs API? Smoke with curl first, e.g. `datarefs?filter[name]=…`

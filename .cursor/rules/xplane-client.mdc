@@ -1,0 +1,33 @@
+---
+description: X-Plane Web API client and debugging conventions
+globs: src/xplane/**,scripts/smoke-client.ts
+alwaysApply: false
+---
+
+# X-Plane Web API
+
+- Base: `http://localhost:8086/api/v3` and `ws://localhost:8086/api/v3`
+- Pin `/api/v3` as a constant for future bumps
+- Capabilities: read/write DataRefs, activate Commands, subscribe (~10 Hz)
+- Docs: https://developer.x-plane.com/article/x-plane-web-api/
+
+## Invariants
+
+- DataRef and Command **numeric IDs are session-scoped** — resolve again after every X-Plane restart
+- API is localhost-only (Stream Deck and X-Plane on same machine)
+
+## Debug
+
+Before blaming the plugin, smoke the API:
+
+```bash
+curl 'http://localhost:8086/api/v3/datarefs?filter[name]=sim/cockpit2/controls/gear_handle_down'
+```
+
+Script: `scripts/smoke-client.ts`. Logs after install: `~/Library/Logs/ElgatoStreamDeck/`
+
+## References (study, don't copy)
+
+- PilotsDeck (scope): https://github.com/Fragtality/PilotsDeck
+- Cockpitdecks (architecture): https://github.com/devleaks/cockpitdecks
+- Elgato samples: https://github.com/elgatosf/streamdeck-plugin-samples

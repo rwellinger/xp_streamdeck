@@ -1,0 +1,28 @@
+---
+description: Stream Deck action + Property Inspector conventions (M03)
+globs: src/actions/**,com.robertw.xplane.sdPlugin/ui/**
+alwaysApply: false
+---
+
+# Action conventions
+
+- Settings: `type FooSettings = JsonObject & { … }`. Import `JsonObject` from `@elgato/utils` (not `@elgato/streamdeck`).
+- Feedback: `showOk()` on success (optional opt-out); **always** `showAlert()` on every failure (including empty config) — never gate alerts.
+- Checkboxes: unchecked = baseline, checked = opt-in deviation. In code use `=== true` (not `!== false`); missing setting → baseline. Do not rely on `default="true"` on `<sdpi-checkbox>`.
+- PI: `com.robertw.xplane.sdPlugin/ui/<action>.html`, sdpi-components v4 from CDN.
+- No floating promises — `.catch((err) => streamDeck.logger.error(...))` or `await`.
+- Read settings from `ev.payload.settings`; trim string inputs.
+
+## Shared helpers (import, don't reinvent)
+
+- `src/util/coerce.ts` — `toFiniteNumber`, `coerceNumber`, `describeValue`
+- `src/util/settings.ts` — `trimString`, `trimStringOr`, `normalizeFormat`
+- `src/util/error-tile.ts` — offline/not-found tile helpers (`setOffline`, `setNotFound`, …)
+- `src/util/dataref-path.ts` — `parseDataRefPath`, `applyIndex`
+- `src/util/format.ts` — `formatDataRefValue`
+- `src/const.ts` — `TIMINGS.*`, `TOLERANCE_FLOAT`
+
+## State machine names
+
+- `STATE_DIRTY = -1` forces next `setState()`/`setImage()` (settings change, offline recovery, re-subscribe)
+- `STATE_OFF` / `STATE_ON` (toggles) and `STATE_LOCKED` / `STATE_UNLOCKED` (guarded) stay action-local
