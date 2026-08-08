@@ -1,0 +1,14 @@
+---
+description: GitHub issues start in Plan Mode before implementation
+alwaysApply: true
+---
+
+# GitHub issues → plan first
+
+When the user points at a GitHub issue (URL, `#N`, or “issue N”):
+
+1. Fetch it locally with `gh` (`gh issue view N`, optionally `--comments`).
+2. Treat the work as **planning first**, not implementation — switch to / stay in **Plan Mode** (or propose the switch) before writing code.
+3. Only implement after the plan is agreed (or the user explicitly says to skip planning / implement now).
+
+Small, unambiguous fixes the user already scoped as “just do X” can skip planning; default for issues is plan first.
