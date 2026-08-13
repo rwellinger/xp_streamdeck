@@ -37,6 +37,12 @@ const REQ_TIMEOUT_MS = 5000;
 // enough that the user notices, long enough to swallow brief WebSocket
 // hiccups (X-Plane reload, network blip) without flashing the offline tile.
 const OFFLINE_DELAY_MS = 3000;
+// Dead-peer detection: a silently dropped connection (sleeping Mac, WLAN
+// change, frozen sim) never emits 'close'. Ping keeps traffic flowing so the
+// activity watchdog stays meaningful even when no DataRef is subscribed.
+// The timeout allows two pings to go missing before we drop the socket.
+const HEARTBEAT_INTERVAL_MS = 5000;
+const HEARTBEAT_TIMEOUT_MS = 15000;
 
 export class XPlaneClient extends EventEmitter implements SubscriptionTransport {
 	readonly logger: XPlaneLogger;
@@ -54,6 +60,9 @@ export class XPlaneClient extends EventEmitter implements SubscriptionTransport 
 
 	private offlineTimer: NodeJS.Timeout | null = null;
 	private offlineEmitted = false;
+
+	private heartbeatTimer: NodeJS.Timeout | null = null;
+	private lastActivityAt = 0;
 
 	private dataRefIdByName = new Map<string, number>();
 	private commandIdByName = new Map<string, number>();
@@ -189,6 +198,7 @@ export class XPlaneClient extends EventEmitter implements SubscriptionTransport 
 			this.reconnectTimer = null;
 		}
 		this.cancelOfflineSignal();
+		this.stopHeartbeat();
 		if (this.ws) {
 			this.ws.removeAllListeners();
 			try {
@@ -306,6 +316,9 @@ export class XPlaneClient extends EventEmitter implements SubscriptionTransport 
 		ws.on("close", () => this.onWsClose());
 		ws.on("error", (err) => this.onWsError(err));
 		ws.on("message", (data) => this.onWsMessage(data));
+		ws.on("pong", () => {
+			this.lastActivityAt = Date.now();
+		});
 	}
 
 	private onWsOpen(): void {
@@ -326,12 +339,14 @@ export class XPlaneClient extends EventEmitter implements SubscriptionTransport 
 		void this.subs.rebindAll().catch((err) => {
 			this.logger.warn("rebindAll failed", err);
 		});
+		this.startHeartbeat();
 	}
 
 	private onWsClose(): void {
 		const wasConnected = this.wsState === "connected";
 		this.wsState = "disconnected";
 		this.ws = null;
+		this.stopHeartbeat();
 		this.subs.markAllUnsubscribed();
 		for (const p of this.pending.values()) {
 			clearTimeout(p.timer);
@@ -364,6 +379,34 @@ export class XPlaneClient extends EventEmitter implements SubscriptionTransport 
 		}
 	}
 
+	private startHeartbeat(): void {
+		this.stopHeartbeat();
+		this.lastActivityAt = Date.now();
+		this.heartbeatTimer = setInterval(() => this.heartbeatTick(), HEARTBEAT_INTERVAL_MS);
+	}
+
+	private stopHeartbeat(): void {
+		if (this.heartbeatTimer) {
+			clearInterval(this.heartbeatTimer);
+			this.heartbeatTimer = null;
+		}
+	}
+
+	private heartbeatTick(): void {
+		const ws = this.ws;
+		if (!ws || ws.readyState !== WebSocket.OPEN) return;
+		if (Date.now() - this.lastActivityAt > HEARTBEAT_TIMEOUT_MS) {
+			this.logger.warn("X-Plane WS heartbeat timeout - terminating");
+			ws.terminate();
+			return;
+		}
+		try {
+			ws.ping();
+		} catch (err) {
+			this.logger.warn("X-Plane WS ping failed", err);
+		}
+	}
+
 	private onWsError(err: unknown): void {
 		this.logger.warn("X-Plane WS error", err);
 		this.emit("error", err);
@@ -381,6 +424,7 @@ export class XPlaneClient extends EventEmitter implements SubscriptionTransport 
 	}
 
 	private onWsMessage(raw: RawData): void {
+		this.lastActivityAt = Date.now();
 		let msg: WsServerMessage;
 		try {
 			msg = JSON.parse(raw.toString()) as WsServerMessage;
