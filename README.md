@@ -74,7 +74,7 @@ Ready-made Stream Deck XL, Stream Deck MK2 and Stream Deck 3 profiles ship under
 | Phenom 300 | `xp_stream_ph300.streamDeckProfile` | 1.3.0.0 | XL |
 | Pilatus PC12 by Thranda (G1000) | `xp_stream_pc12.streamDeckProfile` | 1.3.0.0 | XL |
 | EuroCopter EC130 (Garmin 430) | `xp_stream_ec130.streamDeckProfile` | 1.3.0.0 | XL |
-| AW-109 SP 2.0 | `xp_stream_aw109.streamDeckProfile` | 1.4.3.0 | XL |
+| AW-109 SP 2.0 by X-Trident | `xp_stream_aw109.streamDeckProfile` | 1.4.3.0 | XL |
 | AW139 by x-rotors.com | `xp_stream_aw139.streamDeckProfile` | 1.7.1.0 | XL |
 | Guimbal Cabri G2 | `xp_stream_gabri_g2.streamDeckProfile` | 1.4.3.0 | XL |
 | T-6A Texan II by AOA | `xp_stream_t6a.streamDeckProfile` | 1.4.4.0 | XL |

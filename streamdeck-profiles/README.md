@@ -78,7 +78,7 @@ Streamdeck models currently supported by the profiles:
 | **Phenom 300 by Aerobask** | ✅ | ❌ |
 | **Pilatus PC12 by Thranda (G1000 Version)** | ✅ | ❌ |
 | **EuroCopter EC130 (Garmin 430 Edition)** | ✅ | ❌ |
-| **AW-109 SP 2.0** | ✅ | ❌ |
+| **AW-109 SP 2.0 by X-Trident** | ✅ | ❌ |
 | **AW139 by x-rotors.com** | ✅ | ❌ |
 | **Guimbal Cabri G2** | ✅ | ❌ |
 | **T-6A Texan II by AOA** | ✅ | ❌ |
@@ -301,7 +301,9 @@ Plugin Version Required: 1.3.0.0 or newer
 * Ground Procedures (Cold&Dark)
 * Cockpit Views
 
-## AW-109 SP 2.0
+## AW-109 SP 2.0 by X-Trident
+
+The AW109 from [X-Trident](https://www.x-trident.com/) — not the AW109 by x-rotors.com.
 
 Filename: xp_stream_aw109.streamDeckProfile
 
