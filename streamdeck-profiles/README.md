@@ -79,8 +79,12 @@ Streamdeck models currently supported by the profiles:
 | **Pilatus PC12 by Thranda (G1000 Version)** | ✅ | ❌ |
 | **EuroCopter EC130 (Garmin 430 Edition)** | ✅ | ❌ |
 | **AW-109 SP 2.0** | ✅ | ❌ |
+| **AW139 by x-rotors.com** | ✅ | ❌ |
 | **Guimbal Cabri G2** | ✅ | ❌ |
 | **T-6A Texan II by AOA** | ✅ | ❌ |
+| **T-7A Red Hawk by AOA** | ✅ | ❌ |
+| **BN-2A Islander by Thranda** | ✅ | ❌ |
+| **EuroFOX** | ✅ | ❌ |
 | **Toliss Airbus Family** | ❌ | ✅ |
 
 > [!TIP]  
@@ -312,6 +316,25 @@ Plugin Version Required: 1.4.3.0 or newer (Uses the new Display Selector)
 * Ground Procedures (Cold&Dark)
 * Cockpit Views
 
+## AW139 by x-rotors.com
+
+The AW139 from [x-rotors.com](https://www.x-rotors.com/).
+
+Filename: xp_stream_aw139.streamDeckProfile
+
+Plugin Version Required: 1.7.1.0 or newer
+
+### Features: ###
+
+* AW139 Overhead and Cockpit Buttons (Electrics, Fuel, Pumps, X-Feed, Ext Power)
+* Engine Start (Igniter 1/2, OEI TNG, RPM 101%)
+* AFCS Autopilot (AP1/AP2, CPL, SAS/ATT, HDG, NAV, ALT/ALTA, VS, IAS, APP, BC, HOV, RHT, DCL, Force Trim)
+* CCD Cursor Control (arrows, ENTER, dial coarse/fine)
+* Shows some Engine indicators and Wind Display
+* Master Warning / Caution Reset
+* Ground Procedures (Cold&Dark)
+* Cockpit Views (Quick Looks)
+
 ## Guimbal Cabri G2
 
 Filename: xp_stream_gabri_g2.streamDeckProfile
@@ -342,6 +365,27 @@ Plugin Version Required: 1.4.4.0 or newer (Uses the new Display Selector)
 * Ground Procedures (Cold&Dark)
 * Cockpit Views
 
+## T-7A Red Hawk by AOA
+
+The successor to the T-6A — this profile has a working autopilot page.
+
+Filename: xp_stream_t7a.streamDeckProfile
+
+Plugin Version Required: 1.7.1.0 or newer
+
+### Features: ###
+
+* T7A Cockpit Buttons (BAT, AVI, GEN, APU, Starter, Fuel Cutoff, Canopy, Brakes)
+* Lights (NAV, BCN, STROBE, LANDING)
+* Oxygen Panel (EMER / MAX / SUPPLY) and GCAS
+* Autopilot (FD / Servos, HDG, APR, ALT, VS)
+* G1000 PFD/MFD integrated (Softkeys, FMS, Range, Popup)
+* GCU 478 (Alpha & Numeric)
+* Master Warning / Caution Reset
+* Wind Display
+* Ground Procedures (Cold&Dark)
+* Cockpit Views (Quick Looks)
+
 ## BN-2A Islander by Thranda
 
 Filename: xp_stream_bn2a_th.streamDeckProfile
@@ -357,6 +401,24 @@ Plugin Version Required: 1.6.2.0 or newer
 * Transponder
 * Cockpit Views
 
+
+## EuroFOX ##
+
+Filename: xp_stream_eurofox.streamDeckProfile
+
+Plugin Version Required: 1.7.1.0 or newer
+
+### Features: ###
+
+* Default Cockpit Buttons (Battery, Avionics, Boost Pump, Parking Brake, Flaps)
+* Ignition A / B (Magnetos)
+* Lights (NAV, LAND, STROBE)
+* Autopilot (Servo, ALT Hold, Pitch / Roll Override)
+* Garmin 430 Support
+* Transponder
+* Wind Display
+* Ground Procedures (Cold&Dark)
+* Cockpit Views (Quick Looks)
 
 ## Toliss Airbus Family ##
 

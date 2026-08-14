@@ -75,8 +75,12 @@ Ready-made Stream Deck XL, Stream Deck MK2 and Stream Deck 3 profiles ship under
 | Pilatus PC12 by Thranda (G1000) | `xp_stream_pc12.streamDeckProfile` | 1.3.0.0 | XL |
 | EuroCopter EC130 (Garmin 430) | `xp_stream_ec130.streamDeckProfile` | 1.3.0.0 | XL |
 | AW-109 SP 2.0 | `xp_stream_aw109.streamDeckProfile` | 1.4.3.0 | XL |
+| AW139 by x-rotors.com | `xp_stream_aw139.streamDeckProfile` | 1.7.1.0 | XL |
 | Guimbal Cabri G2 | `xp_stream_gabri_g2.streamDeckProfile` | 1.4.3.0 | XL |
 | T-6A Texan II by AOA | `xp_stream_t6a.streamDeckProfile` | 1.4.4.0 | XL |
+| T-7A Red Hawk by AOA | `xp_stream_t7a.streamDeckProfile` | 1.7.1.0 | XL |
+| BN-2A Islander by Thranda | `xp_stream_bn2a_th.streamDeckProfile` | 1.6.2.0 | XL |
+| EuroFOX | `xp_stream_eurofox.streamDeckProfile` | 1.7.1.0 | XL |
 | Toliss Airbus Family | `xp_stream_airbus_toliss.streamDeckProfile` | 1.4.3.0 | MK2, SD3 |
 
 Per-aircraft feature notes, the full Stream Deck **model compatibility matrix** (XL 4×8 vs. MK2 / Stream Deck 3 3×15), and first-time setup live in [`streamdeck-profiles/README.md`](streamdeck-profiles/README.md).
