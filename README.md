@@ -6,7 +6,7 @@ Native Stream Deck plugin for X-Plane 12 — runs on macOS and Windows, talking 
 
 |⚠️ Note about x-plane.org|
 | --- |
-| I have been banned from x-plane.org over a question I asked about a licence, and I can no longer edit any of my uploads there. I have therefore decided to stop supporting that community. All releases are available here on GitHub. Thank you for your support. |
+| I no longer support x-plane.org. These plugins are not available there any more. GitHub is the only place where they are released and updated. |
 
 ## Contents
 
