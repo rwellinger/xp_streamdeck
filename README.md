@@ -7,10 +7,6 @@ Native Stream Deck plugin for X-Plane 12 — runs on macOS and Windows, talking 
 Download and project website:
 [thwelly.ch/xplane-plugins/xp-streamdeck](https://thwelly.ch/xplane-plugins/xp-streamdeck/)
 
-|⚠️ Note about x-plane.org ⚠️ |
-| --- |
-| I no longer support x-plane.org. These plugins are not available there any more. GitHub is the only place where they are released and updated. |
-
 ## Contents
 
 - [Platform support](#platform-support)
