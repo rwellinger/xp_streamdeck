@@ -1,0 +1,16 @@
+2026-11-05T00:43:45.904Z INFO  smoke: press blocked, condition a/b[0] == 2 not met (value=1 (number))
+2026-11-05T00:43:45.905Z WARN  smoke: press blocked, condition a/b[0] == 2 failed 
+Error: offline
+    at <anonymous> (/Users/robertw/Workspace/x-plane/xp_streamdeck/scripts/smoke-condition.ts:119:26)
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+2026-11-05T00:43:45.905Z WARN  smoke: press blocked, condition a/b[0] == 2 failed 
+Error: DataRef is not an array but [0] was given
+    at applyIndex (/Users/robertw/Workspace/x-plane/xp_streamdeck/src/util/dataref-path.ts:30:9)
+    at pressBlocked (/Users/robertw/Workspace/x-plane/xp_streamdeck/src/util/condition.ts:110:17)
+    at async <anonymous> (/Users/robertw/Workspace/x-plane/xp_streamdeck/scripts/smoke-condition.ts:131:17)
+2026-11-05T00:43:45.905Z WARN  smoke: press blocked, condition a/b[0] == undefined failed 
+Error: condition value is empty or invalid
+    at pressBlocked (/Users/robertw/Workspace/x-plane/xp_streamdeck/src/util/condition.ts:106:37)
+    at <anonymous> (/Users/robertw/Workspace/x-plane/xp_streamdeck/scripts/smoke-condition.ts:131:23)

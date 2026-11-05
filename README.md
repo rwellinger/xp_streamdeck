@@ -455,9 +455,22 @@ Property Inspector fields:
 - **Command Path** — only used when *Trigger Mode* is `Activate Command`.
 - **Command Path ON** / **Command Path OFF** — only used when *Trigger Mode* is `On/Off Command`.
 - **Hold Mode** — when checked, the action becomes momentary: `keyDown` writes `Value ON`, `keyUp` writes `Value OFF`. Trigger Mode, Strict ON Match, and the Command Path fields are ignored and hidden. Use this for press-and-hold controls (e.g. EC130 hydraulic test, master-caution test) where you also want the OFF/ON image to flip with the live DataRef.
+- **Condition (optional)** — only execute the press if another DataRef meets a comparison: **DataRef** (supports `name[index]`), **Operator** (`==`, `!=`, `>`, `>=`, `<`, `<=`), numeric **Value**, and **Applies To** (`Both directions`, `Only turning ON`, `Only turning OFF`). If the condition is not met, nothing is written and the button shows the alert. The value is read at press time; if it can't be read or the Value field is invalid, the press is blocked too. Leave DataRef empty to disable. In Hold Mode the condition is checked on press only (`Only turning OFF` has no effect there) and a release after an allowed press is never blocked.
 - **Image OFF** / **Image ON** — optional custom 144×144 PNG/JPG/SVG per state. Uploads accept **drag & drop** onto the thumbnail, **paste from clipboard** (Cmd/Ctrl+V), or **click** to open the file picker. Files are downscaled to 144 px and persisted to disk so multi-state image switching stays reliable. Leave empty to use the default `imgs/states/{off,on}` images.
 
 The Property Inspector hides the command-path fields that don't apply to the selected trigger mode, so only the relevant inputs are visible.
+
+#### Example: interlock on another switch
+
+The switch may only be turned ON while the main switch is in position 2; turning it OFF always works.
+
+| Field | Value |
+| --- | --- |
+| DataRef Path | `sim/cockpit2/switches/custom_slider_on[5]` |
+| Condition DataRef | `rotorsim/ec135/main_switch[0]` |
+| Operator | `==` |
+| Value | `2` |
+| Applies To | `Only turning ON` |
 
 #### Example: gear handle
 
@@ -566,6 +579,7 @@ Property Inspector fields:
 - **Static Label Position** — `Top` or `Bottom`.
 - **Hide Confirmation** — opt-out of the `showOk()` flash on every successful press.
 - **Hide Endstop Alert** — suppress the alert when pressing past Min / Max (silent no-op).
+- **Condition (optional)** — same as on [DataRef Toggle](#dataref-toggle), for short and long press. **Applies To** is `Both directions`, `Only toward Max` or `Only toward Min`, based on the value change, so Invert Direction doesn't affect it. Example: to lock `rotorsim/ec135/main_switch[0]` while `sim/cockpit2/switches/custom_slider_on[5]` is active, use the condition `sim/cockpit2/switches/custom_slider_on[5] == 0` for both directions. The alert for a blocked press is not affected by Hide Endstop Alert.
 
 State images come from the bundled `imgs/states/switch_{up,mid,down}.png` by default; assign custom per-position images via the Stream Deck state pickers. Setting a Static Label, switching to horizontal orientation, or enabling Invert Direction makes the action render the tile at runtime — those settings override the state image.
 

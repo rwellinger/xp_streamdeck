@@ -21,6 +21,12 @@ import type { JsonObject } from "@elgato/utils";
 import { TIMINGS, TOLERANCE_FLOAT } from "../const";
 import { selectors } from "../selectors/registry";
 import { coerceNumber, describeValue, toFiniteNumber } from "../util/coerce";
+import {
+	type Condition,
+	type ConditionSettings,
+	parseCondition,
+	pressBlocked,
+} from "../util/condition";
 import { applyIndex, parseDataRefPath } from "../util/dataref-path";
 import { type EnumMap, parseEnumMap } from "../util/enum";
 import { clearTile, setNotFound, setOffline } from "../util/error-tile";
@@ -36,20 +42,21 @@ import {
 } from "../util/switch-image";
 import type { DataRefValue, SubscriptionHandle, XPlaneClient } from "../xplane";
 
-type DataRefSwitchSettings = JsonObject & {
-	datarefPath?: string;
-	minValue?: string | number;
-	maxValue?: string | number;
-	step?: string | number;
-	labels?: string;
-	hideShortConfirmation?: boolean;
-	hideEndstopAlert?: boolean;
-	staticLabel?: string;
-	staticLabelPosition?: SwitchLabelPosition;
-	orientation?: SwitchOrientation;
-	invertDirection?: boolean;
-	bodyColor?: SwitchBodyColor;
-};
+type DataRefSwitchSettings = JsonObject &
+	ConditionSettings & {
+		datarefPath?: string;
+		minValue?: string | number;
+		maxValue?: string | number;
+		step?: string | number;
+		labels?: string;
+		hideShortConfirmation?: boolean;
+		hideEndstopAlert?: boolean;
+		staticLabel?: string;
+		staticLabelPosition?: SwitchLabelPosition;
+		orientation?: SwitchOrientation;
+		invertDirection?: boolean;
+		bodyColor?: SwitchBodyColor;
+	};
 
 const STATE_MIN = 0;
 const STATE_MID = 1;
@@ -69,6 +76,7 @@ interface ParsedSettings {
 	orientation: SwitchOrientation;
 	invertDirection: boolean;
 	bodyColor: SwitchBodyColor;
+	condition?: Condition;
 }
 
 interface ActionState {
@@ -247,6 +255,15 @@ export class XPlaneDataRefSwitch extends SingletonAction<DataRefSwitchSettings> 
 				if (!parsed.hideEndstopAlert) await state.action.showAlert();
 				return;
 			}
+
+			const blocked = await pressBlocked(
+				this.xplane,
+				state.action,
+				parsed.condition,
+				target > current ? "on" : "off",
+				"dataref-switch",
+			);
+			if (blocked) return;
 
 			await this.xplane.writeDataRef(drId, target, index);
 			streamDeck.logger.info(
@@ -476,6 +493,7 @@ function parseSettings(s: DataRefSwitchSettings): ParsedSettings {
 		orientation,
 		invertDirection: s.invertDirection === true,
 		bodyColor,
+		condition: parseCondition(s),
 	};
 }
 
