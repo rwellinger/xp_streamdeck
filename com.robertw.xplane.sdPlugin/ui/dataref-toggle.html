@@ -23,6 +23,13 @@
 			.live-preview[data-state="error"] {
 				color: #d97;
 			}
+			.section-hdr {
+				margin: 12px 12px 4px 12px;
+				font-size: 11px;
+				text-transform: uppercase;
+				letter-spacing: 0.06em;
+				color: #888;
+			}
 		</style>
 	</head>
 	<body>
@@ -144,6 +151,54 @@
 				</small>
 		</sdpi-item>
 
+		<div class="section-hdr">Condition (optional)</div>
+		<sdpi-item label="DataRef">
+			<sdpi-textfield
+				setting="conditionDataRef"
+				placeholder="rotorsim/ec135/main_switch[0]"
+				id="conditionField"
+			></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Live Value">
+			<span class="live-preview" id="conditionPreview"></span>
+		</sdpi-item>
+		<sdpi-item label="Operator">
+			<sdpi-select setting="conditionOperator" default="eq">
+				<option value="eq">== equal</option>
+				<option value="ne">!= not equal</option>
+				<option value="gt">&gt; greater</option>
+				<option value="ge">&gt;= greater or equal</option>
+				<option value="lt">&lt; less</option>
+				<option value="le">&lt;= less or equal</option>
+			</sdpi-select>
+		</sdpi-item>
+		<sdpi-item label="Value">
+			<sdpi-textfield
+				setting="conditionValue"
+				placeholder="2"
+				inputmode="decimal"
+			></sdpi-textfield>
+		</sdpi-item>
+		<sdpi-item label="Applies To">
+			<sdpi-select setting="conditionScope" default="both">
+				<option value="both">Both directions</option>
+				<option value="on">Only turning ON</option>
+				<option value="off">Only turning OFF</option>
+			</sdpi-select>
+		</sdpi-item>
+		<sdpi-item label="Hide Blocked Alert">
+			<sdpi-checkbox setting="hideConditionAlert">
+				Don't show the alert when the condition is not met — just ignore the
+				press. Errors (e.g. DataRef not found) still show it.
+			</sdpi-checkbox>
+		</sdpi-item>
+		<sdpi-item>
+			<small style="color: #888; font-size: 11px">
+				The press is only executed if the condition is met, otherwise the
+				button shows the alert. Leave DataRef empty to disable.
+			</small>
+		</sdpi-item>
+
 		<script>
 			(() => {
 				const client = window.SDPIComponents?.streamDeckClient;
@@ -246,6 +301,14 @@
 					window.XPlanePI.attachAutocomplete(commandOnFieldEl, "command");
 				if (commandOffFieldEl)
 					window.XPlanePI.attachAutocomplete(commandOffFieldEl, "command");
+				const conditionField = document.getElementById("conditionField");
+				if (conditionField) {
+					window.XPlanePI.attachAutocomplete(conditionField, "dataref");
+					window.XPlanePI.attachLivePreview(
+						conditionField,
+						document.getElementById("conditionPreview"),
+					);
+				}
 			})();
 		</script>
 	</body>

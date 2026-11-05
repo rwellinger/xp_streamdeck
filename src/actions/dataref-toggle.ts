@@ -21,6 +21,12 @@ import type { JsonObject } from "@elgato/utils";
 import { TOLERANCE_FLOAT } from "../const";
 import { selectors } from "../selectors/registry";
 import { coerceNumber, describeValue, toFiniteNumber } from "../util/coerce";
+import {
+	type Condition,
+	type ConditionSettings,
+	parseCondition,
+	pressBlocked,
+} from "../util/condition";
 import { applyIndex, parseDataRefPath } from "../util/dataref-path";
 import { clearTile, setNotFound, setOffline } from "../util/error-tile";
 import { extractPlaceholderKeys, substitutePlaceholders } from "../util/placeholders";
@@ -36,23 +42,24 @@ import type { DataRefValue, SubscriptionHandle, XPlaneClient } from "../xplane";
 
 type TriggerMode = "write" | "command" | "command-on-off";
 
-type DataRefToggleSettings = JsonObject & {
-	datarefPath?: string;
-	stateDataRefPath?: string;
-	valueOff?: string | number;
-	valueOn?: string | number;
-	triggerMode?: TriggerMode;
-	commandPath?: string;
-	commandOnPath?: string;
-	commandOffPath?: string;
-	strictOnMatch?: boolean;
-	holdMode?: boolean;
-	staticLabel?: string;
-	staticLabelPosition?: ToggleLabelPosition;
-	orientation?: ToggleOrientation;
-	bodyColor?: ToggleBodyColor;
-	invert?: boolean;
-};
+type DataRefToggleSettings = JsonObject &
+	ConditionSettings & {
+		datarefPath?: string;
+		stateDataRefPath?: string;
+		valueOff?: string | number;
+		valueOn?: string | number;
+		triggerMode?: TriggerMode;
+		commandPath?: string;
+		commandOnPath?: string;
+		commandOffPath?: string;
+		strictOnMatch?: boolean;
+		holdMode?: boolean;
+		staticLabel?: string;
+		staticLabelPosition?: ToggleLabelPosition;
+		orientation?: ToggleOrientation;
+		bodyColor?: ToggleBodyColor;
+		invert?: boolean;
+	};
 
 const STATE_OFF = 0;
 const STATE_ON = 1;
@@ -73,6 +80,7 @@ interface ParsedSettings {
 	orientation: ToggleOrientation;
 	bodyColor: ToggleBodyColor;
 	invert: boolean;
+	condition?: Condition;
 }
 
 interface ActionState {
@@ -102,6 +110,8 @@ interface ActionState {
 	// still in flight — without it, a fast double-click reads the same stale
 	// subscription cache twice and sends the same command twice.
 	inflightKeyDown: boolean;
+	// A hold press rejected by the condition must not write valueOff on release.
+	holdBlocked?: boolean;
 	// Serializes overlapping renderState() calls so setState from an earlier
 	// update can't interleave with a newer one.
 	renderPromise?: Promise<void>;
@@ -210,6 +220,15 @@ export class XPlaneDataRefToggle extends SingletonAction<DataRefToggleSettings> 
 		// the matching valueOff happens in onKeyUp. triggerMode and
 		// strictOnMatch are ignored here.
 		if (parsed.holdMode) {
+			const blocked = await pressBlocked(
+				this.xplane,
+				ev.action,
+				parsed.condition,
+				"on",
+				"dataref-toggle",
+			);
+			if (state) state.holdBlocked = blocked;
+			if (blocked) return;
 			try {
 				const { basePath, index } = parseDataRefPath(writePath);
 				const drId = await this.xplane.getDataRefId(basePath);
@@ -244,6 +263,12 @@ export class XPlaneDataRefToggle extends SingletonAction<DataRefToggleSettings> 
 					await ev.action.showAlert();
 					return;
 				}
+				// Scope "both" needs no direction, so skip the state lookup then.
+				const isOn =
+					parsed.condition && parsed.condition.scope !== "both"
+						? await this.readIsOn(state, parsed)
+						: false;
+				if (await this.isBlocked(ev.action, parsed, isOn)) return;
 				const commandPath = substitutePlaceholders(parsed.commandPath, snap);
 				const cmdId = await this.xplane.getCommandId(commandPath);
 				await this.xplane.activateCommand(cmdId);
@@ -266,6 +291,7 @@ export class XPlaneDataRefToggle extends SingletonAction<DataRefToggleSettings> 
 						parsed.valueOn,
 						parsed.strictOnMatch,
 					) === STATE_ON;
+				if (await this.isBlocked(ev.action, parsed, isOn)) return;
 				const rawTargetPath = isOn ? parsed.commandOffPath : parsed.commandOnPath;
 				if (!rawTargetPath) {
 					streamDeck.logger.warn(
@@ -299,6 +325,7 @@ export class XPlaneDataRefToggle extends SingletonAction<DataRefToggleSettings> 
 						parsed.valueOn,
 						parsed.strictOnMatch,
 					) === STATE_ON;
+				if (await this.isBlocked(ev.action, parsed, isOn)) return;
 				const target = isOn ? parsed.valueOff : parsed.valueOn;
 				await this.xplane.writeDataRef(drId, target, index);
 				streamDeck.logger.info(
@@ -322,6 +349,10 @@ export class XPlaneDataRefToggle extends SingletonAction<DataRefToggleSettings> 
 		if (!parsed.holdMode || !parsed.path) return;
 
 		const state = this.states.get(ev.action.id);
+		if (state?.holdBlocked) {
+			state.holdBlocked = false;
+			return;
+		}
 		const writePath = substitutePlaceholders(parsed.path, selectors.snapshot());
 		try {
 			const { basePath, index } = parseDataRefPath(writePath);
@@ -338,6 +369,37 @@ export class XPlaneDataRefToggle extends SingletonAction<DataRefToggleSettings> 
 			streamDeck.logger.error("dataref-toggle hold release failed", err);
 			await ev.action.showAlert();
 		}
+	}
+
+	private isBlocked(
+		action: KeyAction<DataRefToggleSettings>,
+		parsed: ParsedSettings,
+		isOn: boolean,
+	): Promise<boolean> {
+		return pressBlocked(
+			this.xplane,
+			action,
+			parsed.condition,
+			isOn ? "off" : "on",
+			"dataref-toggle",
+		);
+	}
+
+	private async readIsOn(
+		state: ActionState | undefined,
+		parsed: ParsedSettings,
+	): Promise<boolean> {
+		let current = state?.lastValue;
+		if (current === undefined) {
+			const resolved = substitutePlaceholders(parsed.statePath, selectors.snapshot());
+			const { basePath, index } = parseDataRefPath(resolved);
+			const id = await this.xplane.getDataRefId(basePath);
+			current = applyIndex(await this.xplane.readDataRef(id), index);
+		}
+		return (
+			mapValueToStateIndex(current, parsed.valueOff, parsed.valueOn, parsed.strictOnMatch) ===
+			STATE_ON
+		);
 	}
 
 	private async applySubscription(state: ActionState): Promise<void> {
@@ -545,6 +607,7 @@ function parseSettings(s: DataRefToggleSettings): ParsedSettings {
 		orientation: s.orientation === "vertical" ? "vertical" : "horizontal",
 		bodyColor: parseBodyColor(s.bodyColor),
 		invert: s.invert === true,
+		condition: parseCondition(s),
 	};
 }
 
