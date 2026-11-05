@@ -47,7 +47,7 @@ const compareCases: [DataRefValue, ConditionOperator, number, boolean][] = [
 const parsed = (s: Parameters<typeof parseCondition>[0]): Condition | undefined =>
 	parseCondition(s);
 
-const base = { path: "a/b[0]", operator: "eq", expected: 2, scope: "both" };
+const base = { path: "a/b[0]", operator: "eq", expected: 2, scope: "both", hideAlert: false };
 
 const checks: [string, unknown, unknown][] = [
 	["no settings → off", parsed({}), undefined],
@@ -82,6 +82,11 @@ const checks: [string, unknown, unknown][] = [
 	["scope both / off", appliesTo({ ...base, scope: "both" } as Condition, "off"), true],
 	["scope on / on", appliesTo({ ...base, scope: "on" } as Condition, "on"), true],
 	["scope on / off", appliesTo({ ...base, scope: "on" } as Condition, "off"), false],
+	[
+		"hide alert opt-in",
+		parsed({ conditionDataRef: "a/b[0]", conditionValue: 2, hideConditionAlert: true }),
+		{ ...base, hideAlert: true },
+	],
 	["scope off / on", appliesTo({ ...base, scope: "off" } as Condition, "on"), false],
 ];
 
@@ -111,7 +116,7 @@ const fakeClient = (value: DataRefValue | Error): XPlaneClient =>
 
 const cond = (over: Partial<Condition>): Condition => ({ ...(base as Condition), ...over });
 
-const blockCases: [string, DataRefValue | Error, Condition | undefined, boolean][] = [
+const blockCases: [string, DataRefValue | Error, Condition | undefined, boolean, number?][] = [
 	["no condition", 0, undefined, false],
 	["met", [2, 0], cond({}), false],
 	["not met", [1, 0], cond({}), true],
@@ -119,9 +124,18 @@ const blockCases: [string, DataRefValue | Error, Condition | undefined, boolean]
 	["read failure blocks", new Error("offline"), cond({}), true],
 	["scalar with index blocks", 2, cond({}), true],
 	["missing value blocks", [2, 0], cond({ expected: undefined }), true],
+	["hidden: not met is silent", [1, 0], cond({ hideAlert: true }), true, 0],
+	["hidden: read failure alerts", new Error("offline"), cond({ hideAlert: true }), true, 1],
+	[
+		"hidden: missing value alerts",
+		[2, 0],
+		cond({ expected: undefined, hideAlert: true }),
+		true,
+		1,
+	],
 ];
 
-for (const [name, value, condition, expected] of blockCases) {
+for (const [name, value, condition, expected, expectedAlerts] of blockCases) {
 	let alerts = 0;
 	const action = {
 		showAlert: async () => {
@@ -129,7 +143,7 @@ for (const [name, value, condition, expected] of blockCases) {
 		},
 	};
 	const actual = await pressBlocked(fakeClient(value), action, condition, "on", "smoke");
-	if (actual !== expected || alerts !== (expected ? 1 : 0)) {
+	if (actual !== expected || alerts !== (expectedAlerts ?? (expected ? 1 : 0))) {
 		console.log(`[FAIL] ${name} → blocked=${actual}, alerts=${alerts}`);
 		failed++;
 	}

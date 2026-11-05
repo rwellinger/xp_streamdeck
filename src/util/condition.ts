@@ -25,6 +25,7 @@ export type ConditionSettings = {
 	conditionOperator?: ConditionOperator;
 	conditionValue?: string | number;
 	conditionScope?: ConditionScope;
+	hideConditionAlert?: boolean;
 };
 
 export interface Condition {
@@ -34,6 +35,7 @@ export interface Condition {
 	// blocked instead of silently ignoring a half-configured condition.
 	expected: number | undefined;
 	scope: ConditionScope;
+	hideAlert: boolean;
 }
 
 const OPERATOR_SYMBOLS: Record<ConditionOperator, string> = {
@@ -55,6 +57,7 @@ export function parseCondition(s: ConditionSettings): Condition | undefined {
 		operator: operator && Object.hasOwn(OPERATOR_SYMBOLS, operator) ? operator : "eq",
 		expected: toFiniteNumber(s.conditionValue),
 		scope: scope === "on" || scope === "off" ? scope : "both",
+		hideAlert: s.hideConditionAlert === true,
 	};
 }
 
@@ -89,7 +92,9 @@ export function compareValue(
 /**
  * Returns true when the press must not be executed, after logging and showing
  * the alert. Reads the value at press time instead of subscribing, so it can't
- * act on a stale value; any read failure blocks the press.
+ * act on a stale value; any read failure blocks the press. `hideAlert` only
+ * silences a regular "not met" — failures stay visible, otherwise a broken
+ * condition would look like a normal lock.
  */
 export async function pressBlocked(
 	xplane: XPlaneClient,
@@ -112,6 +117,7 @@ export async function pressBlocked(
 		streamDeck.logger.info(
 			`${logTag}: press blocked, condition ${rule} not met (value=${describeValue(value)})`,
 		);
+		if (condition.hideAlert) return true;
 	} catch (err) {
 		streamDeck.logger.warn(`${logTag}: press blocked, condition ${rule} failed`, err);
 	}

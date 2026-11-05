@@ -83,7 +83,7 @@ Cross-cutting utilities live under `src/util/` and `src/const.ts`. New actions s
 - **`src/util/error-tile.ts`** — action-specific (NOT a pure util — depends on the Stream Deck SDK). `setOffline`/`clearOffline`/`setNotFound`/`combineTitle`/`NOT_FOUND_SUFFIX`/`OFFLINE_IMAGE`.
 - **`src/util/dataref-path.ts`** — `parseDataRefPath` for `name[index]` syntax + `applyIndex` to slice an array value.
 - **`src/util/format.ts`** — `formatDataRefValue` for printf-style display.
-- **`src/util/condition.ts`** — optional press condition (`ConditionSettings`, `parseCondition`, `pressBlocked`). Reads the DataRef via REST at press time, no subscription; fails closed and shows the alert.
+- **`src/util/condition.ts`** — optional press condition (`ConditionSettings`, `parseCondition`, `pressBlocked`). Reads the DataRef via REST at press time, no subscription; fails closed and shows the alert. `hideConditionAlert` only silences a regular "not met", never a failure.
 - **`src/const.ts`** — `TIMINGS.LONG_PRESS_THRESHOLD_MS / REPEAT_INTERVAL_MS / REPEAT_INITIAL_DELAY_MS`; `TOLERANCE_FLOAT = 1e-6` for value-equality checks.
 
 ### Naming conventions for state machines
