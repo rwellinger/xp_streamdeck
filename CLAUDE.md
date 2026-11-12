@@ -13,7 +13,7 @@ A cross-platform Stream Deck plugin (macOS + Windows; Elgato Stream Deck XL) tha
 - **HTTP client:** native `fetch` (Node 24)
 - **WebSocket client:** `ws`
 - **Property Inspector:** HTML + vanilla JS, optionally `@elgato/sdpi-components`
-- **Target:** macOS 12+ and Windows 10+ (private/sideloaded — no notarization on either OS). Build/dev tooling (`make build`, `make icons`) runs on both; `make export`/`make import` (profile sync via AppleScript) is macOS-only; Windows has a separate PowerShell port in `scripts/windows/sync-profiles.ps1` (no Node.js on the sim PC by design). Any change to the archive format in `scripts/sync-profiles.ts` must be mirrored there.
+- **Target:** macOS 12+ and Windows 10+ (private/sideloaded — no notarization on either OS). Build/dev tooling (`make build`, `make icons`) runs on both; on the Windows sim PC (no system-wide Node by design) icons are generated via `scripts/windows/generate-icons.cmd`, which fetches a portable Node into gitignored `.tools/`; `make export`/`make import` (profile sync via AppleScript) is macOS-only; Windows has a separate PowerShell port in `scripts/windows/sync-profiles.ps1` (no Node.js on the sim PC by design). Any change to the archive format in `scripts/sync-profiles.ts` must be mirrored there.
 
 ## Talking to X-Plane
 
@@ -48,6 +48,7 @@ xp_streamdeck/
 │   ├── smoke-client.ts            # X-Plane Web API smoke test
 │   ├── sync-profiles.ts           # make export/import (macOS)
 │   ├── windows/sync-profiles.ps1  # Windows port of the profile sync (+ .cmd wrapper)
+│   ├── windows/generate-icons.ps1 # `make icons` on Windows via portable Node in .tools/ (+ .cmd)
 │   ├── generate-icons.ts          # Button icon generator (entry; outputs out/icons/)
 │   └── icons/
 │       ├── catalog.ts             # Icon definitions — add a row to add an icon
@@ -123,7 +124,7 @@ To keep buttons visually consistent (one of M01's pain points was inconsistent p
   - **Toggle:** ≤4 chars at 44px; longer labels auto-shrink in fixed steps (5→36, 6→30, 7→26, 8→22, 9→20, 10+→18) via `toggleFontSize()`. Labels of the same length always render at the same size — groups stay uniform within themselves.
   - **Display:** fixed 22px (designed for 6-character max — `AP HDG`, `W SPD`).
   - **Nudge:** fixed 36px label (≤4 chars expected — the arrow is the visual focus, not the label).
-- **Cross-platform reproducible.** `scripts/icons/fonts/InterVariable.ttf` (OFL-1.1) is base64-embedded into every generated SVG via `scripts/icons/fonts.ts` → `withEmbeddedFont()`, applied centrally in `generate-icons.ts:renderPng`. The `font-family` (`XPSDInter`) is deliberately unique so a system-installed Inter never overrides the embedded one. Rendering is identical on macOS, Linux CI, and Windows. Runtime-rendered tiles (`src/util/*-svg.ts`) keep the system-font stack with `Segoe UI` added for Windows fallback — those values are dynamic and a small per-OS font difference is acceptable.
+- **Cross-platform reproducible.** PNGs are rendered with `@resvg/resvg-js` in `generate-icons.ts:renderPng`, which loads ONLY the static Inter 4.1 cuts in `scripts/icons/fonts/` (SemiBold/Bold/ExtraBold/Black, OFL-1.1, listed in `scripts/icons/fonts.ts` → `FONT_FILES`) with system fonts disabled; `sans-serif` is mapped to Inter too. Output is byte-identical on macOS, Linux CI, and Windows. Do not switch back to `sharp`: its librsvg ignores `@font-face` and resolves fonts via a per-OS fontconfig (on Windows `sans-serif` became a serif font). resvg-js 2.x can't select weights from a variable font — a new `font-weight` in a template needs the matching static Inter file added to `FONT_FILES`. Runtime-rendered tiles (`src/util/*-svg.ts`) keep the system-font stack with `Segoe UI` added for Windows fallback — those values are dynamic and a small per-OS font difference is acceptable.
 
 ## Test Environment Reality
 

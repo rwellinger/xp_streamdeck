@@ -8,11 +8,11 @@
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import sharp from "sharp";
+import { Resvg } from "@resvg/resvg-js";
 import { renderSwitchStateSvg, type SwitchTilePosition } from "../src/util/switch-image.ts";
 import type { GuardedIcon } from "./icons/catalog.ts";
 import { catalog } from "./icons/catalog.ts";
-import { withEmbeddedFont } from "./icons/fonts.ts";
+import { FONT_FAMILY, FONT_FILES } from "./icons/fonts.ts";
 import {
 	ACTION_ICON_NAMES,
 	type IconState,
@@ -72,9 +72,18 @@ const OUT_DIR = resolve(process.cwd(), "out/icons");
 const BUNDLE_IMGS_DIR = resolve(process.cwd(), "com.robertw.xplane.sdPlugin/imgs");
 const STATES: IconState[] = ["on", "off"];
 
+// System fonts stay off so every OS renders with exactly the bundled Inter.
 async function renderPng(svg: string, size: number): Promise<Buffer> {
-	const withFont = withEmbeddedFont(svg);
-	return sharp(Buffer.from(withFont)).resize(size, size).png().toBuffer();
+	const resvg = new Resvg(svg, {
+		fitTo: { mode: "width", value: size },
+		font: {
+			fontFiles: FONT_FILES,
+			loadSystemFonts: false,
+			defaultFontFamily: FONT_FAMILY,
+			sansSerifFamily: FONT_FAMILY,
+		},
+	});
+	return resvg.render().asPng();
 }
 
 async function main(): Promise<void> {

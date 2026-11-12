@@ -1,5 +1,7 @@
 # Node.js
 node_modules/
+# Portable Node downloaded by scripts/windows/generate-icons.ps1
+.tools/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

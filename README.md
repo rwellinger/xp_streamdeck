@@ -92,7 +92,7 @@ Per-aircraft feature notes, the full Stream Deck **model compatibility matrix** 
 
 - **Plugin runtime:** macOS 12+ and Windows 10+. Sideload from a Release tarball or build from this repo.
 - **Stream Deck hardware:** the plugin runs on any Stream Deck. Bundled profiles target the Stream Deck XL (4×8); Stream Deck MK2 and Stream Deck 3 (3×15) layouts are being added — see the [model compatibility matrix](streamdeck-profiles/README.md#streamdeck-models-support). XL can open MK2 / SD3 profiles fine; the reverse appears cropped. Stream Deck+ dials use the dedicated [Encoder](#encoder) action.
-- **Build & dev tooling:** `npm install`, `npm run build`, and `npm run icons` work on both OS. The `make` targets are convenience wrappers for macOS/Linux shells — Windows users should call the underlying `npm` scripts directly.
+- **Build & dev tooling:** `npm install`, `npm run build`, and `npm run icons` work on both OS. The `make` targets are convenience wrappers for macOS/Linux shells — Windows users should call the underlying `npm` scripts directly. To only generate icons on a Windows machine without installing Node.js, use `scripts\windows\generate-icons.cmd` (portable Node in `.tools/`).
 - **`make export` / `make import`** (Stream Deck profile sync) is **macOS-only** because it drives the Stream Deck app via AppleScript and reads `~/Library/...`. On Windows use `scripts\windows\sync-profiles.cmd export|import` (plain PowerShell, no Node.js needed).
 - Initial Windows port and AW109-profile validation were contributed by a community user.
 
@@ -947,6 +947,7 @@ Toggles produce `<name>_on.png` + `<name>_off.png`; displays and nudges produce 
    - `double` *(nudge only, optional)* — `true` renders two stacked triangles for "coarse step" semantics (e.g. ALT ↑↑ for big increments).
    - `color` *(background only)* — hex fill for the entire tile. The group's accent is ignored for this kind.
 3. Run `make icons`. The new files appear in `out/icons/<group>/`.
+   **Windows without Node.js installed:** run `scripts\windows\generate-icons.cmd` instead. The first run downloads a portable Node (checksum-verified) into the gitignored `.tools/` folder and runs `npm ci`; later runs only generate. `scripts\windows\generate-icons.cmd -Clean` removes `.tools/` and `node_modules/` again.
 4. In the Stream Deck app: drag the PNG onto a key. For a `display` icon, configure the `dataref-display` action (DataRef path + format) on that key — the live value renders as the title in the empty zone of the icon.
 
 To rename an icon, edit the catalog entry and re-run; the old PNGs stay until you run `make clean`.

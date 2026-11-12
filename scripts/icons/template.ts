@@ -36,10 +36,8 @@ const BG = "#0d0d0d";
 const LABEL_COLOR = "#ffffff";
 const BAR_OFF = "#1f1f1f";
 
-// Resolves to the @font-face declared at the top of every generated SVG
-// (see generate-icons.ts → renderPng → withEmbeddedFont). The sans-serif
-// fallback is just a safety net if the style-block injection is ever
-// bypassed; under normal flow every rendered tile uses embedded Inter.
+// generate-icons.ts → renderPng loads only the bundled Inter files and maps
+// sans-serif to Inter as well, so both names resolve to the same font.
 const FONT_STACK = `'${FONT_FAMILY}', sans-serif`;
 
 // Labels are user-defined strings that get inlined into SVG <text> content,
