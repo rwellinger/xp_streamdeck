@@ -29,8 +29,9 @@ Download and project website:
 - Drives any DataRef or CommandRef from a button, including array-indexed DataRefs via `name[N]` (see [Array DataRefs](#array-datarefs)).
 - [Display Selector](#display-selector): one set of buttons drives multiple identical panels (e.g. AW109 `EDU1..EDU4`) via `{KEY}` placeholders in every DataRef / Command path.
 - 17 action types — fire commands, write DataRefs, render live values, two-stage guarded covers, multi-position switches, scripted multi-action macros, wind arrow, Stream Deck+ dial Encoder, …
-- Locally generated, visually consistent button icons (5 kinds, color-coded by group) — see [Button icons](#button-icons).
-- Profile sync via `make export` / `make import` (macOS) and `scripts\windows\sync-profiles.cmd` (Windows) — preserves folder UUIDs so parent-profile cross-links survive across machines.
+- Locally generated, visually consistent button icons (5 kinds, color-coded by group), rendered byte-identically on macOS, Linux and Windows — see [Button icons](#button-icons).
+- Profile sync via `make export` / `make import` (macOS) — preserves folder UUIDs so parent-profile cross-links survive across machines.
+- Windows support via PowerShell, no Node.js install needed: profile import/export (`scripts\windows\sync-profiles.cmd export|import`) and icon generation (`scripts\windows\generate-icons.cmd`, fetches a portable Node on first run).
 - Cross-platform PilotsDeck profile converter (`make convert`) — adapt an existing PilotsDeck `.streamDeckProfile` to this plugin (see [Converting a PilotsDeck profile](#converting-a-pilotsdeck-profile)).
 
 ### Action types
