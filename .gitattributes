@@ -1,0 +1,6 @@
+# LF everywhere regardless of the machine's core.autocrlf (repo is developed on macOS).
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.streamDeckProfile binary
+*.png binary
+*.ttf binary

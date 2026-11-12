@@ -30,7 +30,7 @@ Download and project website:
 - [Display Selector](#display-selector): one set of buttons drives multiple identical panels (e.g. AW109 `EDU1..EDU4`) via `{KEY}` placeholders in every DataRef / Command path.
 - 17 action types — fire commands, write DataRefs, render live values, two-stage guarded covers, multi-position switches, scripted multi-action macros, wind arrow, Stream Deck+ dial Encoder, …
 - Locally generated, visually consistent button icons (5 kinds, color-coded by group) — see [Button icons](#button-icons).
-- macOS profile sync via `make export` / `make import` — preserves folder UUIDs so parent-profile cross-links survive across machines.
+- Profile sync via `make export` / `make import` (macOS) and `scripts\windows\sync-profiles.cmd` (Windows) — preserves folder UUIDs so parent-profile cross-links survive across machines.
 - Cross-platform PilotsDeck profile converter (`make convert`) — adapt an existing PilotsDeck `.streamDeckProfile` to this plugin (see [Converting a PilotsDeck profile](#converting-a-pilotsdeck-profile)).
 
 ### Action types
@@ -93,7 +93,7 @@ Per-aircraft feature notes, the full Stream Deck **model compatibility matrix** 
 - **Plugin runtime:** macOS 12+ and Windows 10+. Sideload from a Release tarball or build from this repo.
 - **Stream Deck hardware:** the plugin runs on any Stream Deck. Bundled profiles target the Stream Deck XL (4×8); Stream Deck MK2 and Stream Deck 3 (3×15) layouts are being added — see the [model compatibility matrix](streamdeck-profiles/README.md#streamdeck-models-support). XL can open MK2 / SD3 profiles fine; the reverse appears cropped. Stream Deck+ dials use the dedicated [Encoder](#encoder) action.
 - **Build & dev tooling:** `npm install`, `npm run build`, and `npm run icons` work on both OS. The `make` targets are convenience wrappers for macOS/Linux shells — Windows users should call the underlying `npm` scripts directly.
-- **`make export` / `make import`** (Stream Deck profile sync) is **macOS-only** because it drives the Stream Deck app via AppleScript and reads `~/Library/...`. Windows users manage profiles via the Stream Deck app's built-in import/export UI.
+- **`make export` / `make import`** (Stream Deck profile sync) is **macOS-only** because it drives the Stream Deck app via AppleScript and reads `~/Library/...`. On Windows use `scripts\windows\sync-profiles.cmd export|import` (plain PowerShell, no Node.js needed).
 - Initial Windows port and AW109-profile validation were contributed by a community user.
 
 ## Prerequisites
@@ -970,7 +970,7 @@ Each profile expects this plugin installed and the matching aircraft loaded in X
 
 ### Syncing profiles via `make`
 
-> **macOS-only.** `make export` and `make import` drive the Stream Deck app via AppleScript and read `~/Library/Application Support/...`. Windows users should manage profiles through the Stream Deck app's built-in import/export UI; the bundled `.streamDeckProfile` archives under `streamdeck-profiles/` are platform-agnostic.
+> **macOS:** `make export` / `make import`. **Windows:** `scripts\windows\sync-profiles.cmd export` / `import` — same behavior and archive format, needs only the built-in Windows PowerShell (no Node.js, no `make`). Details in [`streamdeck-profiles/README.md`](streamdeck-profiles/README.md#sync-on-windows).
 
 Profiles are versioned in this repo and synced with two targets that bypass the Stream Deck UI (which always creates "Copy" duplicates with fresh UUIDs and breaks the parent `X-Plane` profile's cross-links):
 

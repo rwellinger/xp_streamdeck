@@ -36,6 +36,9 @@ coverage/
 # Editor / OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
 .vscode/
 .idea/
 

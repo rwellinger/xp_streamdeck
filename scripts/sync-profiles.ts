@@ -23,10 +23,12 @@ import { homedir, tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 
+// scripts/windows/sync-profiles.ps1 writes the same archive format on Windows —
+// mirror any change to normalization, package.json or layout there.
 if (process.platform !== "darwin") {
 	console.error(
-		"sync-profiles is a macOS-only dev tool (uses AppleScript and ~/Library/...).\n" +
-			"Windows users should manage profiles via the Stream Deck app's import/export UI.",
+		"sync-profiles.ts is macOS-only (uses AppleScript and ~/Library/...).\n" +
+			"On Windows use: scripts\\windows\\sync-profiles.cmd export|import",
 	);
 	process.exit(2);
 }

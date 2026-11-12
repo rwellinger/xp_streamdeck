@@ -57,6 +57,34 @@ On the sim Mac: `git pull && make import` picks up the new profile and the
 updated parent automatically — the new tile works on first launch because
 folder UUIDs are preserved across machines.
 
+### Sync on Windows
+
+`scripts\windows\sync-profiles.cmd` is the Windows counterpart of
+`make export` / `make import`. No Node.js, no `make`. The `.cmd` wrapper uses
+PowerShell 7 (`pwsh`) when installed and falls back to the built-in Windows
+PowerShell 5.1; it runs the script with `-ExecutionPolicy Bypass` for that
+single call, so no system setting changes. Stick to the wrapper: 5.1 and 7
+pack zips slightly differently, so mixing them shows unchanged profiles as
+modified in git.
+
+```bat
+scripts\windows\sync-profiles.cmd export
+scripts\windows\sync-profiles.cmd import
+scripts\windows\sync-profiles.cmd import -Dir "Streamdeck 3"
+scripts\windows\sync-profiles.cmd export -Select "1,3"
+```
+
+It reads `%APPDATA%\Elgato\StreamDeck\ProfilesV3`, quits and relaunches the
+Stream Deck app, and writes archives in the same format as the macOS script
+(neutral `Device.UUID`, folder UUIDs preserved). Profiles round-trip between
+Windows and macOS in both directions.
+
+First time on a Windows machine whose profiles came in through the Stream
+Deck UI: follow [First-time setup](#first-time-setup-on-a-new-mac) above
+(delete `xp_stream_*` + `X-Plane`, import, re-link the Default Profile tile).
+**Don't export before that** — the archives would carry the Windows-only
+folder UUIDs and break the parent's links on every other machine.
+
 ## Streamdeck Models Support ##
 
 Streamdeck models currently supported by the profiles:

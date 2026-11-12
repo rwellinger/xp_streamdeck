@@ -13,7 +13,7 @@ A cross-platform Stream Deck plugin (macOS + Windows; Elgato Stream Deck XL) tha
 - **HTTP client:** native `fetch` (Node 24)
 - **WebSocket client:** `ws`
 - **Property Inspector:** HTML + vanilla JS, optionally `@elgato/sdpi-components`
-- **Target:** macOS 12+ and Windows 10+ (private/sideloaded — no notarization on either OS). Build/dev tooling (`make build`, `make icons`) runs on both; `make export`/`make import` (profile sync via AppleScript) is macOS-only.
+- **Target:** macOS 12+ and Windows 10+ (private/sideloaded — no notarization on either OS). Build/dev tooling (`make build`, `make icons`) runs on both; `make export`/`make import` (profile sync via AppleScript) is macOS-only; Windows has a separate PowerShell port in `scripts/windows/sync-profiles.ps1` (no Node.js on the sim PC by design). Any change to the archive format in `scripts/sync-profiles.ts` must be mirrored there.
 
 ## Talking to X-Plane
 
@@ -46,6 +46,8 @@ xp_streamdeck/
 │   └── util/                      # Helpers (formatting, etc.)
 ├── scripts/                       # tsx-runnable utilities (not bundled into the plugin)
 │   ├── smoke-client.ts            # X-Plane Web API smoke test
+│   ├── sync-profiles.ts           # make export/import (macOS)
+│   ├── windows/sync-profiles.ps1  # Windows port of the profile sync (+ .cmd wrapper)
 │   ├── generate-icons.ts          # Button icon generator (entry; outputs out/icons/)
 │   └── icons/
 │       ├── catalog.ts             # Icon definitions — add a row to add an icon
