@@ -284,6 +284,54 @@
 		if (inner.value.trim()) restart();
 	};
 
+	// ---------------- About footer ----------------
+	// window.open() is a no-op inside a PI; "openUrl" is a PI-allowed
+	// Stream Deck event that opens the system browser.
+
+	const ABOUT_LINKS = [
+		["More plugins", "https://thwelly.ch/xplane-plugins/"],
+		["Buy me a coffee", "https://buymeacoffee.com/thwelly"],
+	];
+
+	const renderAboutFooter = async () => {
+		const footer = document.createElement("div");
+		footer.style.cssText =
+			"margin:24px 0 8px;padding-top:8px;border-top:1px solid #3d3d3d;" +
+			"font-size:10px;color:#8a8a8a;text-align:center;";
+		const label = document.createElement("span");
+		label.textContent = "X-Plane plugin by thWelly";
+		footer.append(label);
+		for (const [text, url] of ABOUT_LINKS) {
+			const link = document.createElement("a");
+			link.textContent = text;
+			link.href = "#";
+			link.style.cssText = "color:#8a8a8a;margin-left:10px;";
+			link.addEventListener("click", (ev) => {
+				ev.preventDefault();
+				getClient()
+					?.send("openUrl", { url })
+					.catch((err) => console.error("xplane-pi-helpers: openUrl failed", err));
+			});
+			footer.append(link);
+		}
+		document.body.append(footer);
+
+		try {
+			const version = (await getClient()?.getConnectionInfo())?.info?.plugin?.version;
+			if (version) label.textContent = `X-Plane plugin v${version} by thWelly`;
+		} catch {
+			// Version is cosmetic; the footer stays without it.
+		}
+	};
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", () => {
+			renderAboutFooter().catch((err) => console.error("xplane-pi-helpers: footer failed", err));
+		});
+	} else {
+		renderAboutFooter().catch((err) => console.error("xplane-pi-helpers: footer failed", err));
+	}
+
 	window.XPlanePI = {
 		attachAutocomplete,
 		attachLivePreview,

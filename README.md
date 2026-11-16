@@ -20,6 +20,7 @@ Download and project website:
 - [Aircraft/Helicopter profiles (sync)](#aircrafthelicopter-profiles)
 - [Converting a PilotsDeck profile](#converting-a-pilotsdeck-profile)
 - [Common Make targets](#common-make-targets)
+- [About](#about)
 
 ## Features
 
@@ -1004,3 +1005,9 @@ The converter prints a report of everything that needs manual rework. Known limi
 ## Common Make targets
 
 Run `make help` for the full list. Most-used: `make build`, `make icons`, `make clean`, `make distclean`, `make setup`, `make package`.
+## About
+
+xp_streamdeck is built by thWelly (Switzerland) in his spare time — see [`ABOUT.md`](ABOUT.md) for license and bundled components.
+
+- More X-Plane plugins: [thwelly.ch/xplane-plugins](https://thwelly.ch/xplane-plugins/)
+- Support the project: [Buy me a coffee](https://buymeacoffee.com/thwelly)

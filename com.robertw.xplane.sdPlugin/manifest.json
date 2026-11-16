@@ -321,6 +321,7 @@
 	"CodePath": "bin/plugin.js",
 	"Description": "Control X-Plane 12 from your Stream Deck via the native Web API.",
 	"SupportURL": "https://github.com/rwellinger/xp_streamdeck/issues",
+	"URL": "https://thwelly.ch/xplane-plugins/xp-streamdeck/",
 	"Icon": "imgs/plugin/marketplace",
 	"SDKVersion": 3,
 	"Software": {

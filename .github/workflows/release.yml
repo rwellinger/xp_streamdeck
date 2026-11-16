@@ -67,7 +67,7 @@ jobs:
           mkdir -p "$STAGE/profiles"
           rsync -am --include='*/' --include='*.streamDeckProfile' --exclude='*' \
             streamdeck-profiles/ "$STAGE/profiles/"
-          cp README.md INSTALL.md      "$STAGE/"
+          cp README.md INSTALL.md ABOUT.md LICENSE "$STAGE/"
           ls -la "$STAGE"
           echo "Bundled profiles:"
           find "$STAGE/profiles" -name '*.streamDeckProfile' | sort
